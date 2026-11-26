@@ -1446,10 +1446,14 @@ export function HudApp() {
       <div class="fixed bottom-4 left-1/2 -translate-x-1/2 zs-frosted-hud px-2.5 py-1.5 flex items-center gap-1 pointer-events-auto">
         {/* Brand Emblem */}
         <div class="flex items-center gap-1.5 pl-1.5 pr-2 border-r border-[#d6d6d6]">
-          <span class="w-4 h-4 rounded-[5px] bg-[#1d1d1f] text-white text-[10px] font-bold flex items-center justify-center relative">
-            Z
-            <span class="w-1.5 h-1.5 rounded-full bg-[#0071e3] absolute -top-0.5 -right-0.5" />
-          </span>
+          <svg viewBox="0 0 512 512" class="w-5 h-5 shrink-0" fill="none">
+            <rect x="16" y="16" width="480" height="480" rx="120" fill="#1d1d1f" />
+            <path fill="#ffffff" d="M124 128H286V166H162V248H124V128Z" />
+            <path fill="#ffffff" d="M124 290H162V346H214V384H124V290Z" />
+            <path fill="#ffffff" d="M232 346H350V276H388V384H232V346Z" />
+            <line x1="178" y1="330" x2="314" y2="194" stroke="#ffffff" stroke-width="40" />
+            <circle cx="358" cy="158" r="34" fill="#0071e3" />
+          </svg>
           <span class="text-[12px] font-semibold tracking-[-0.12px]">ZSpect</span>
         </div>
 
