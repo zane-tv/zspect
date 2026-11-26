@@ -1,0 +1,22 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" width="512" height="512" fill="none">
+  <defs>
+    <!-- Cutout mask around the blue inspection pin dot for crisp optical separation -->
+    <mask id="z-pin-cutout">
+      <rect width="512" height="512" fill="#ffffff" />
+      <circle cx="352" cy="156" r="34" fill="#000000" />
+    </mask>
+  </defs>
+
+  <!-- Apple-proportioned squircle container in matte Ink (#1d1d1f) with Hairline Silver (#d6d6d6) edge -->
+  <rect x="24" y="24" width="464" height="464" rx="112" fill="#1d1d1f" stroke="#d6d6d6" stroke-width="4" />
+
+  <!-- Bracketed geometric "Z" (Inspection Frame + 45-degree optical diagonal) -->
+  <path
+    mask="url(#z-pin-cutout)"
+    fill="#ffffff"
+    d="M148 140H356V176L212 340H328V296H364V376H148V344L294 176H184V216H148V140Z"
+  />
+
+  <!-- Pricing Blue (#0071e3) focal inspection pin -->
+  <circle cx="352" cy="156" r="22" fill="#0071e3" />
+</svg>
