@@ -20,7 +20,6 @@ export default defineConfig({
       'sidePanel',
       'offscreen',
       'clipboardWrite',
-      'unlimitedStorage',
     ],
     host_permissions: ['<all_urls>'],
     optional_permissions: ['debugger'],
