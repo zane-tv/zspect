@@ -10,7 +10,7 @@ export default defineConfig({
     name: 'ZSpect — Universal UI Inspector & AI Feedback',
     short_name: 'ZSpect',
     description:
-      'Inspect every page without dev packages: Framework X-Ray, Cross-Tab @ref Vault, VisBug Diff Tools, 30s Bug Capsule & .md/.xlsx Exports.',
+      'Zero-install UI inspector: Framework X-Ray, @ref Vault, VisBug Diffs, 30s Bug Capsule & .xlsx/.md AI Exports.',
     version: '1.0.0',
     homepage_url: 'https://github.com/zane-tv/zspect',
     permissions: [
