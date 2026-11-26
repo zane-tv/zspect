@@ -1,0 +1,213 @@
+<!doctype html>
+<html lang="en" data-default-theme="light">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Features — ZSpect Docs</title>
+  <meta name="description" content="Everything built into the ZSpect HUD, Popover, and Side Panel Workspace." />
+  <link rel="icon" type="image/svg+xml" href="../../assets/zspect-logo.svg" />
+  <link rel="stylesheet" href="../../styles.css" />
+  <script src="../../app.js" defer></script>
+</head>
+<body>
+  <div class="docs-shell">
+    <aside class="docs-sidebar">
+      <a class="docs-brand" href="../../">
+        <svg viewBox="0 0 512 512" fill="none" aria-hidden="true">
+  <rect x="16" y="16" width="480" height="480" rx="120" fill="#1d1d1f" stroke="#545458" stroke-width="14"/>
+  <path fill="#ffffff" d="M124 128H286V166H162V248H124V128Z"/>
+  <path fill="#ffffff" d="M124 290H162V346H214V384H124V290Z"/>
+  <path fill="#ffffff" d="M232 346H350V276H388V384H232V346Z"/>
+  <line x1="178" y1="330" x2="314" y2="194" stroke="#ffffff" stroke-width="40"/>
+  <circle cx="358" cy="158" r="34" fill="#0071e3"/>
+</svg>
+        <span>ZSpect</span>
+      </a>
+
+      
+      <div class="docs-nav-group">
+        
+        
+          <div>
+            <a class="docs-link" href="../../docs/">
+              <span>Overview</span>
+              
+            </a>
+            
+          </div>
+          <div>
+            <a class="docs-link" href="../../docs/install/">
+              <span>Install</span>
+              
+            </a>
+            
+          </div>
+          <div>
+            <a class="docs-link active" href="../../docs/features/">
+              <span>Features</span>
+              
+            </a>
+            <div class="docs-sublinks"><a href="#modes">Inspection Modes</a><a href="#hud">HUD Controls</a><a href="#xray">Framework X-Ray</a><a href="#pause">Circular Pause Mode</a></div>
+          </div>
+          <div>
+            <a class="docs-link" href="../../docs/output/">
+              <span>Output</span>
+              <span class="docs-tag">.xlsx + AI</span>
+            </a>
+            
+          </div>
+      </div>
+      <div class="docs-nav-group">
+        <div class="docs-group-label">Tools</div>
+        
+          <div>
+            <a class="docs-link" href="../../docs/visbug/">
+              <span>VisBug Toolkit</span>
+              
+            </a>
+            
+          </div>
+          <div>
+            <a class="docs-link" href="../../docs/ref-vault/">
+              <span>@ref Vault</span>
+              
+            </a>
+            
+          </div>
+          <div>
+            <a class="docs-link" href="../../docs/freeze-capsule/">
+              <span>Freeze & Capsule</span>
+              
+            </a>
+            
+          </div>
+          <div>
+            <a class="docs-link" href="../../docs/shortcuts/">
+              <span>Shortcuts</span>
+              
+            </a>
+            
+          </div>
+          <div>
+            <a class="docs-link" href="../../docs/architecture/">
+              <span>Architecture</span>
+              
+            </a>
+            
+          </div>
+      </div>
+      <div class="docs-nav-group">
+        <div class="docs-group-label">Resources</div>
+        
+          <div>
+            <a class="docs-link" href="../../docs/changelog/">
+              <span>Changelog</span>
+              
+            </a>
+            
+          </div>
+          <div>
+            <a class="docs-link" href="../../docs/faq/">
+              <span>FAQ</span>
+              
+            </a>
+            
+          </div>
+          <div>
+            <a class="docs-link" href="../../privacy/">
+              <span>Privacy</span>
+              
+            </a>
+            
+          </div>
+          <div>
+            <a class="docs-link" href="../../terms/">
+              <span>Terms</span>
+              
+            </a>
+            
+          </div>
+      </div>
+
+      <div class="docs-sidebar-foot">
+        <a href="https://github.com/zane-tv/zspect/releases/tag/v1.0.0" style="color:inherit">v1.0.0</a>
+        <span>·</span>
+        <a href="https://github.com/zane-tv/zspect" style="color:inherit">GitHub</a>
+        <span>·</span>
+        <button type="button" class="theme-btn" style="width:26px;height:26px;border-radius:6px" data-toggle-theme title="Toggle Light/Dark"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="4"/><path d="M12 2v2"/><path d="M12 20v2"/><path d="m4.93 4.93 1.41 1.41"/><path d="m17.66 17.66 1.41 1.41"/><path d="M2 12h2"/><path d="M20 12h2"/><path d="m6.34 17.66-1.41 1.41"/><path d="m19.07 4.93-1.41 1.41"/></svg></button>
+      </div>
+    </aside>
+
+    <main class="docs-article">
+      <h1>Features</h1>
+      <p class="docs-subtitle">Everything built into the ZSpect HUD, Popover, and Side Panel Workspace.</p>
+      
+      <h2 class="docs-rule-h2" id="modes">Inspection modes</h2>
+      <p>Click the tabs below to preview how each primary ZSpect capture mode works:</p>
+
+      <div class="pill-tabs" data-tab-group="feat-modes">
+        <button type="button" class="pill-tab active" data-tab-target="fm-element">Element &amp; Text</button>
+        <button type="button" class="pill-tab" data-tab-target="fm-area">Area Marquee</button>
+        <button type="button" class="pill-tab" data-tab-target="fm-multi">Multi-Select</button>
+        <button type="button" class="pill-tab" data-tab-target="fm-diff">Design Overlay Diff</button>
+      </div>
+
+      <div id="fm-element" class="tab-panel active" data-tab-panel="feat-modes">
+        <div class="code-card">
+          <div class="code-card-bar"><span class="mono">Mode: Inspect Element (I)</span></div>
+          <pre><code>• Hover any DOM or Shadow DOM element to preview its tag, ID, and pixel dimensions.
+• Click to open the compact 316px Pin Composer with auto-detected Component &amp; IDE link.
+• Highlight text before clicking to automatically set Pin type to "Copy / Text" and quote the selection.</code></pre>
+        </div>
+      </div>
+
+      <div id="fm-area" class="tab-panel" data-tab-panel="feat-modes">
+        <div class="code-card">
+          <div class="code-card-bar"><span class="mono">Mode: Capture Area (R)</span></div>
+          <pre><code>• Drag a dashed selection rectangle across any region of the viewport.
+• OffscreenCanvas crops a crisp Retina (2× DPR) PNG with a numbered badge overlay.
+• Ideal for multi-card alignment bugs, chart rendering glitches, or visual regressions.</code></pre>
+        </div>
+      </div>
+
+      <div id="fm-multi" class="tab-panel" data-tab-panel="feat-modes">
+        <div class="code-card">
+          <div class="code-card-bar"><span class="mono">Shortcut: Cmd/Ctrl + Click</span></div>
+          <pre><code>• Hold Cmd (macOS) or Ctrl (Windows/Linux) while clicking to select multiple elements at once.
+• Batch-adjust padding or margin across all selected nodes simultaneously in Spacing mode (P/M).
+• All secondary selectors are bundled into extraSelectors in your exported report.</code></pre>
+        </div>
+      </div>
+
+      <div id="fm-diff" class="tab-panel" data-tab-panel="feat-modes">
+        <div class="code-card">
+          <div class="code-card-bar"><span class="mono">Mode: Overlay Diff (D)</span></div>
+          <pre><code>• Capture a "Before" viewport snapshot or press Cmd/Ctrl + V to paste a Figma PNG from your clipboard.
+• Toggle between Onion-Skin opacity blending (0–100%) and an interactive Split-Wipe divider.
+• Nudge overlay alignment by 1px (or 8px with Shift) using the arrow keys.</code></pre>
+        </div>
+      </div>
+
+      <h2 class="docs-rule-h2" id="hud">HUD &amp; Pin management controls</h2>
+      <ul class="tool-list">
+        <li><span class="tool-kbd">Drag</span><span><strong>Draggable HUD &amp; Popover</strong> — grab the grip handle to reposition anywhere on screen</span></li>
+        <li><span class="tool-kbd">Hover Pin</span><span><strong>Inline Pin Delete (✕)</strong> — hover any numbered pin on the webpage to preview its note or delete it immediately (remaining pins re-index automatically)</span></li>
+        <li><span class="tool-kbd">Clear</span><span><strong>Two-Step Clear All</strong> — wipe all session pins from either the HUD trash button or Side Panel</span></li>
+        <li><span class="tool-kbd">Copy Img</span><span><strong>Direct PNG Clipboard</strong> — copy a single annotated region screenshot or a stitched multi-pin contact sheet</span></li>
+      </ul>
+
+      <h2 class="docs-rule-h2" id="xray">Framework X-Ray</h2>
+      <p>ZSpect's <code>MAIN</code> world probe inspects live component instances across <strong>React 16–19</strong>, <strong>Vue 3</strong>, <strong>Svelte</strong>, <strong>Astro</strong>, and <strong>Angular</strong>. On minified production bundles where function names are mangled to 1–2 letters (such as <code>&lt;Be&gt;</code> or <code>&lt;ps&gt;</code>), ZSpect automatically filters out mangled identifiers while still reporting the detected framework, resolved CSS Custom Properties, and Tailwind CSS v4 utility equivalents.</p>
+
+      <h2 class="docs-rule-h2" id="pause">Circular Logo Pause Mode</h2>
+      <img class="docs-shot" src="../../assets/screenshots/minimized-circular-fab.png" alt="ZSpect Minimized Circular Logo Launcher" />
+      <p>Clicking <code>✕</code>, clicking the ZSpect logo on the left of the HUD, or pressing <code>Esc</code> collapses the toolbar into a <strong>44×44px circular logo launcher</strong> in the bottom-right corner. While minimized, inspection is completely off so clicks, hovers, and forms on the host webpage work without interception.</p>
+    
+      <div class="docs-pager">
+          <div><a href="../../docs/install/">← Install</a></div>
+          <div><a href="../../docs/output/">Output →</a></div>
+        </div>
+    </main>
+  </div>
+</body>
+</html>

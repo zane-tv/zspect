@@ -1,0 +1,169 @@
+<!doctype html>
+<html lang="en" data-default-theme="light">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Cross-Tab @ref Design Vault — ZSpect Docs</title>
+  <meta name="description" content="Extract UI DNA from any reference website and reference it inside AI prompts." />
+  <link rel="icon" type="image/svg+xml" href="../../assets/zspect-logo.svg" />
+  <link rel="stylesheet" href="../../styles.css" />
+  <script src="../../app.js" defer></script>
+</head>
+<body>
+  <div class="docs-shell">
+    <aside class="docs-sidebar">
+      <a class="docs-brand" href="../../">
+        <svg viewBox="0 0 512 512" fill="none" aria-hidden="true">
+  <rect x="16" y="16" width="480" height="480" rx="120" fill="#1d1d1f" stroke="#545458" stroke-width="14"/>
+  <path fill="#ffffff" d="M124 128H286V166H162V248H124V128Z"/>
+  <path fill="#ffffff" d="M124 290H162V346H214V384H124V290Z"/>
+  <path fill="#ffffff" d="M232 346H350V276H388V384H232V346Z"/>
+  <line x1="178" y1="330" x2="314" y2="194" stroke="#ffffff" stroke-width="40"/>
+  <circle cx="358" cy="158" r="34" fill="#0071e3"/>
+</svg>
+        <span>ZSpect</span>
+      </a>
+
+      
+      <div class="docs-nav-group">
+        
+        
+          <div>
+            <a class="docs-link" href="../../docs/">
+              <span>Overview</span>
+              
+            </a>
+            
+          </div>
+          <div>
+            <a class="docs-link" href="../../docs/install/">
+              <span>Install</span>
+              
+            </a>
+            
+          </div>
+          <div>
+            <a class="docs-link" href="../../docs/features/">
+              <span>Features</span>
+              
+            </a>
+            
+          </div>
+          <div>
+            <a class="docs-link" href="../../docs/output/">
+              <span>Output</span>
+              <span class="docs-tag">.xlsx + AI</span>
+            </a>
+            
+          </div>
+      </div>
+      <div class="docs-nav-group">
+        <div class="docs-group-label">Tools</div>
+        
+          <div>
+            <a class="docs-link" href="../../docs/visbug/">
+              <span>VisBug Toolkit</span>
+              
+            </a>
+            
+          </div>
+          <div>
+            <a class="docs-link active" href="../../docs/ref-vault/">
+              <span>@ref Vault</span>
+              
+            </a>
+            
+          </div>
+          <div>
+            <a class="docs-link" href="../../docs/freeze-capsule/">
+              <span>Freeze & Capsule</span>
+              
+            </a>
+            
+          </div>
+          <div>
+            <a class="docs-link" href="../../docs/shortcuts/">
+              <span>Shortcuts</span>
+              
+            </a>
+            
+          </div>
+          <div>
+            <a class="docs-link" href="../../docs/architecture/">
+              <span>Architecture</span>
+              
+            </a>
+            
+          </div>
+      </div>
+      <div class="docs-nav-group">
+        <div class="docs-group-label">Resources</div>
+        
+          <div>
+            <a class="docs-link" href="../../docs/changelog/">
+              <span>Changelog</span>
+              
+            </a>
+            
+          </div>
+          <div>
+            <a class="docs-link" href="../../docs/faq/">
+              <span>FAQ</span>
+              
+            </a>
+            
+          </div>
+          <div>
+            <a class="docs-link" href="../../privacy/">
+              <span>Privacy</span>
+              
+            </a>
+            
+          </div>
+          <div>
+            <a class="docs-link" href="../../terms/">
+              <span>Terms</span>
+              
+            </a>
+            
+          </div>
+      </div>
+
+      <div class="docs-sidebar-foot">
+        <a href="https://github.com/zane-tv/zspect/releases/tag/v1.0.0" style="color:inherit">v1.0.0</a>
+        <span>·</span>
+        <a href="https://github.com/zane-tv/zspect" style="color:inherit">GitHub</a>
+        <span>·</span>
+        <button type="button" class="theme-btn" style="width:26px;height:26px;border-radius:6px" data-toggle-theme title="Toggle Light/Dark"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="4"/><path d="M12 2v2"/><path d="M12 20v2"/><path d="m4.93 4.93 1.41 1.41"/><path d="m17.66 17.66 1.41 1.41"/><path d="M2 12h2"/><path d="M20 12h2"/><path d="m6.34 17.66-1.41 1.41"/><path d="m19.07 4.93-1.41 1.41"/></svg></button>
+      </div>
+    </aside>
+
+    <main class="docs-article">
+      <h1>Cross-Tab @ref Design Vault</h1>
+      <p class="docs-subtitle">Extract UI DNA from any reference website and reference it inside AI prompts.</p>
+      
+      <p>When asking an AI agent to restyle a component, saying <em>"make it look nicer"</em> produces generic output. ZSpect's <strong><code>@ref</code> Vault</strong> lets you capture real production UI tokens from any website in one tab and attach them to pins on your project in another tab.</p>
+
+      <h2 class="docs-rule-h2">What @ref extracts</h2>
+      <ul class="tool-list">
+        <li><span class="tool-kbd">DOM</span><span><strong>Sanitized Skeleton</strong> — Pruned structural HTML without noisy hashed classes or inline SVG bloat.</span></li>
+        <li><span class="tool-kbd">CSS</span><span><strong>Resolved Custom Properties</strong> — Active <code>--token</code> values, layout rules (Flex/Grid/gap/padding), visual surfaces (radius/shadows/borders), and typography scale.</span></li>
+        <li><span class="tool-kbd">Motion</span><span><strong>Transitions &amp; Keyframes</strong> — Exact <code>cubic-bezier()</code> curves, durations, and <code>::before</code> / <code>::after</code> pseudo-element styles.</span></li>
+        <li><span class="tool-kbd">TW v4</span><span><strong>Tailwind CSS v4 Hints</strong> — Ready-to-paste utility class translation alongside a cropped preview image.</span></li>
+      </ul>
+
+      <h2 class="docs-rule-h2">Workflow</h2>
+      <ol class="docs-steps">
+        <li><span class="step-num">1.</span><span>Open any inspiration site, press <code>Alt + Z</code>, and click the component you admire.</span></li>
+        <li><span class="step-num">2.</span><span>Switch the Popover tab to <strong>Save @ref</strong>, give it an alias like <code>stripe-card</code>, and save.</span></li>
+        <li><span class="step-num">3.</span><span>On your own app tab, pin the target element and click the <code>@stripe-card</code> chip to inject its full blueprint into the compiled AI prompt.</span></li>
+      </ol>
+    
+      <div class="docs-pager">
+          <div><a href="../../docs/visbug/">← VisBug Toolkit</a></div>
+          <div><a href="../../docs/freeze-capsule/">Freeze & Capsule →</a></div>
+        </div>
+    </main>
+  </div>
+</body>
+</html>

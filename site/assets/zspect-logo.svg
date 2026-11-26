@@ -1,0 +1,27 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" width="512" height="512" fill="none">
+  <!-- Matte Ink (#1d1d1f) Apple Squircle with subtle Hairline Silver (#d6d6d6) edge -->
+  <rect x="16" y="16" width="480" height="480" rx="120" fill="#1d1d1f" stroke="#d6d6d6" stroke-width="6" />
+
+  <!-- Top-Left Inspection Bracket -->
+  <path fill="#ffffff" d="M124 128H286V166H162V248H124V128Z" />
+
+  <!-- Bottom-Left Inspection Bracket -->
+  <path fill="#ffffff" d="M124 290H162V346H214V384H124V290Z" />
+
+  <!-- Bottom-Right Inspection Bracket -->
+  <path fill="#ffffff" d="M232 346H350V276H388V384H232V346Z" />
+
+  <!-- 45-Degree Optical Z-Diagonal Beam -->
+  <line
+    x1="178"
+    y1="330"
+    x2="314"
+    y2="194"
+    stroke="#ffffff"
+    stroke-width="38"
+    stroke-linecap="butt"
+  />
+
+  <!-- Pricing Blue (#0071e3) Focal Pin Node -->
+  <circle cx="358" cy="158" r="30" fill="#0071e3" />
+</svg>

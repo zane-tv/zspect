@@ -1,70 +1,454 @@
 <!doctype html>
-<html lang="en">
+<html lang="en" data-default-theme="dark">
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
   <title>ZSpect — Universal Zero-Install Visual Inspector &amp; AI/QA Exporter</title>
-  <meta name="description" content="Inspect any webpage without dev packages: Framework X-Ray, Cross-Tab @ref Vault, VisBug Redlines &amp; Diffs, 30s Bug Capsule &amp; .xlsx/.md Exports." />
+  <meta name="description" content="Inspect every webpage without npm packages: React/Vue/Svelte X-Ray, Cross-Tab @ref Vault, VisBug Redlines &amp; Diffs, 30s Bug Capsule &amp; .xlsx/.md AI Exports." />
+  <link rel="icon" type="image/svg+xml" href="./assets/zspect-logo.svg" />
   <link rel="stylesheet" href="./styles.css" />
+  <script src="./app.js" defer></script>
 </head>
 <body>
-  <header class="topbar">
-    <div class="topbar-inner">
-      <a class="brand" href="./">
+  <header class="site-nav">
+    <div class="site-nav-inner">
+      <a class="brand-lockup" href="./">
         <svg viewBox="0 0 512 512" fill="none" aria-hidden="true">
-          <rect x="16" y="16" width="480" height="480" rx="120" fill="#1d1d1f" stroke="#545458" stroke-width="14"/>
-          <path fill="#ffffff" d="M124 128H286V166H162V248H124V128Z"/>
-          <path fill="#ffffff" d="M124 290H162V346H214V384H124V290Z"/>
-          <path fill="#ffffff" d="M232 346H350V276H388V384H232V346Z"/>
-          <line x1="178" y1="330" x2="314" y2="194" stroke="#ffffff" stroke-width="40"/>
-          <circle cx="358" cy="158" r="34" fill="#0071e3"/>
-        </svg>
+  <rect x="16" y="16" width="480" height="480" rx="120" fill="#1d1d1f" stroke="#545458" stroke-width="14"/>
+  <path fill="#ffffff" d="M124 128H286V166H162V248H124V128Z"/>
+  <path fill="#ffffff" d="M124 290H162V346H214V384H124V290Z"/>
+  <path fill="#ffffff" d="M232 346H350V276H388V384H232V346Z"/>
+  <line x1="178" y1="330" x2="314" y2="194" stroke="#ffffff" stroke-width="40"/>
+  <circle cx="358" cy="158" r="34" fill="#0071e3"/>
+</svg>
         <span>ZSpect</span>
+        <span class="brand-version">v1.0</span>
       </a>
-      <nav class="nav-links">
-        <a class="active" href="./">Overview</a>
-        <a href="./privacy/">Privacy</a>
-        <a href="./terms/">Terms</a>
-        <a class="btn-pill" href="https://github.com/zane-tv/zspect">GitHub</a>
+
+      <nav class="nav-center">
+        <a href="#playground">Live Demo</a>
+        <a href="#capabilities">Capabilities</a>
+        <a href="#outputs">Outputs</a>
+        <a href="#compare">Compare</a>
+        <a href="./docs/">Docs</a>
       </nav>
+
+      <div class="nav-actions">
+        <button type="button" class="theme-btn" data-toggle-theme aria-label="Toggle Light/Dark theme" title="Toggle theme"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="4"/><path d="M12 2v2"/><path d="M12 20v2"/><path d="m4.93 4.93 1.41 1.41"/><path d="m17.66 17.66 1.41 1.41"/><path d="M2 12h2"/><path d="M20 12h2"/><path d="m6.34 17.66-1.41 1.41"/><path d="m19.07 4.93-1.41 1.41"/></svg></button>
+        <a class="btn btn-sm btn-secondary" href="./docs/">Docs</a>
+        <a class="btn btn-sm btn-primary" href="https://github.com/zane-tv/zspect/releases/download/v1.0.0/zspect-1.0.0-chrome.zip">Download .zip</a>
+      </div>
     </div>
   </header>
 
-  <main class="container">
-    <section class="hero">
-      <span class="doc-meta">Manifest V3 · 100% Local-First · Zero-CLI</span>
-      <h1>Universal UI Inspector &amp; AI Feedback Studio</h1>
-      <p>Inspect React, Vue, Svelte, Astro, or any webpage without installing npm packages. Measure VisBug redlines, save cross-tab <code>@ref</code> design tokens, and export annotated <code>.xlsx</code>, <code>.zip</code>, and AI coding prompts.</p>
-      <div class="hero-actions">
-        <a class="btn-primary-lg" href="https://github.com/zane-tv/zspect">View on GitHub</a>
-        <a class="btn-secondary" href="./privacy/">Privacy Policy</a>
-        <a class="btn-secondary" href="./terms/">Terms of Service</a>
+  <main>
+    <section class="hero-stage" id="playground">
+      <svg class="hero-reticle-bg" viewBox="0 0 800 800" fill="none" aria-hidden="true">
+        <circle cx="400" cy="400" r="320" stroke="currentColor" stroke-opacity="0.14" stroke-dasharray="4 6"/>
+        <circle cx="400" cy="400" r="210" stroke="#0071e3" stroke-opacity="0.22"/>
+        <line x1="400" y1="20" x2="400" y2="780" stroke="currentColor" stroke-opacity="0.08"/>
+        <line x1="20" y1="400" x2="780" y2="400" stroke="currentColor" stroke-opacity="0.08"/>
+      </svg>
+
+      <div class="wrap">
+        <div class="hero-copy">
+          <div class="eyebrow-pill">
+            <span class="eyebrow-dot"></span>
+            <span>Manifest V3 Browser Extension · 100% Client-Side · Zero Repo Install</span>
+          </div>
+          <h1 class="hero-title">
+            Inspect every webpage.<br />
+            <span class="muted-line">Ship exact context to AI &amp; QA.</span>
+          </h1>
+          <p class="hero-sub">
+            Turn visual bugs, layout tweaks, and reference designs on <code>localhost</code>, staging, production, or any public site into structured AI coding prompts and annotated Excel QA sheets—without installing a dev package.
+          </p>
+          <div class="hero-cta-row">
+            <a class="btn btn-primary" href="https://github.com/zane-tv/zspect/releases/download/v1.0.0/zspect-1.0.0-chrome.zip">Download ZSpect v1.0 (.zip)</a>
+            <a class="btn btn-secondary" href="./docs/">Read Documentation →</a>
+            <a class="btn btn-secondary" href="https://github.com/zane-tv/zspect">GitHub</a>
+          </div>
+          <div class="hero-meta-strip">
+            <span>Activate anywhere with <kbd>Alt</kbd> + <kbd>Z</kbd></span>
+            <span>·</span>
+            <span>Freeze ephemeral UI with <kbd>Alt</kbd> + <kbd>Shift</kbd> + <kbd>F</kbd></span>
+            <span>·</span>
+            <span>0 KB overhead on idle tabs</span>
+          </div>
+        </div>
+
+        
+    <div class="interactive-stage-wrap">
+      <div class="stage-hint-bar">
+        <span class="stage-badge">● Interactive Live Demo — Hover &amp; click any element inside the window below</span>
+        <span>Switch tools on the bottom HUD or minimize to the circular logo</span>
+      </div>
+
+      <div class="app-window">
+        <div class="app-window-bar">
+          <div class="window-dots">
+            <span style="background:#ff5f57"></span>
+            <span style="background:#febc2e"></span>
+            <span style="background:#28c840"></span>
+          </div>
+          <div class="window-url mono">🔒 staging.acmepay.io/checkout</div>
+          <div class="window-ext-status">ZSpect Active · Alt+Z</div>
+        </div>
+
+        <div class="app-window-body">
+          <div class="demo-canvas" id="zs-demo-canvas">
+            <div class="demo-webapp-nav" data-inspect-comp="<CheckoutHeader>" data-inspect-file="src/checkout/CheckoutHeader.tsx:14" data-inspect-sel="header.checkout-nav" data-inspect-a11y="14.2:1 AAA">
+              <div style="display:flex;align-items:center;gap:8px;font-size:13.5px;font-weight:700">
+                <span style="width:9px;height:9px;border-radius:50%;background:#0071e3"></span>
+                AcmePay <span class="env-pill" data-inspect-comp="<EnvStatusBadge>" data-inspect-file="src/checkout/EnvBadge.tsx:19" data-inspect-sel="span.env-pill" data-inspect-a11y="4.12:1 AA FAIL" style="font-size:10.5px;padding:2px 8px;border-radius:999px;background:#fef3c7;color:#b45309;margin-left:4px">Staging v2.4</span>
+              </div>
+              <div style="font-size:12px;color:#64748b;font-weight:500">Overview · <strong style="color:#0f172a">Checkout</strong> · Webhooks</div>
+            </div>
+
+            <div class="demo-webapp-grid">
+              <div class="demo-card" data-inspect-comp="<PaymentDetailsForm>" data-inspect-file="src/checkout/PaymentDetailsForm.tsx:31" data-inspect-sel="section#payment-form" data-inspect-a11y="12.8:1 AAA">
+                <div style="font-size:15px;font-weight:700;margin-bottom:3px">Payment &amp; Billing</div>
+                <div style="font-size:12px;color:#64748b;margin-bottom:14px">Cluster us-east-1 · Automatic Stripe invoicing</div>
+                <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:16px">
+                  <div data-inspect-comp="<CustomerInput>" data-inspect-file="src/ui/CustomerInput.tsx:12" data-inspect-sel="div.field-cardholder" data-inspect-a11y="9.6:1 AAA">
+                    <div style="font-size:11px;font-weight:600;color:#475569">Cardholder</div>
+                    <div class="demo-input">Alex Rivera</div>
+                  </div>
+                  <div data-inspect-comp="<PlanSelector>" data-inspect-file="src/checkout/PlanSelector.tsx:27" data-inspect-sel="div.field-plan" data-inspect-a11y="9.6:1 AAA">
+                    <div style="font-size:11px;font-weight:600;color:#475569">Plan</div>
+                    <div class="demo-input">Pro Team · $49/seat</div>
+                  </div>
+                </div>
+                <div style="display:flex;justify-content:flex-end;gap:9px">
+                  <button type="button" class="demo-ghost-btn" data-inspect-comp="<SaveDraftButton>" data-inspect-file="src/checkout/SaveDraftButton.tsx:18" data-inspect-sel="button.save-draft" data-inspect-a11y="8.9:1 AAA">Save Draft</button>
+                  <button type="button" id="confirm-charge" class="demo-cta-btn" data-inspect-comp="<SubmitOrderButton>" data-inspect-file="src/checkout/SubmitButton.tsx:88" data-inspect-sel="button#confirm-charge" data-inspect-a11y="4.68:1 AA Pass">Confirm &amp; Charge $245</button>
+                </div>
+              </div>
+
+              <div class="demo-card" data-inspect-comp="<OrderSummaryCard>" data-inspect-file="src/checkout/OrderSummaryCard.tsx:42" data-inspect-sel="aside#order-summary" data-inspect-a11y="13.1:1 AAA">
+                <div style="font-size:14px;font-weight:700;margin-bottom:11px">Order Summary</div>
+                <div style="display:flex;justify-content:space-between;font-size:12.5px;color:#475569;margin-bottom:8px"><span>5 × Pro Seats</span><strong>$245.00</strong></div>
+                <div style="display:flex;justify-content:space-between;font-size:12.5px;color:#475569;margin-bottom:10px"><span>Tax (0%)</span><strong>$0.00</strong></div>
+                <div style="height:1px;background:#e2e8f0;margin-bottom:10px"></div>
+                <div style="display:flex;justify-content:space-between;font-size:14px;font-weight:700"><span>Total Due</span><span>$245.00</span></div>
+              </div>
+            </div>
+
+            <div id="zs-demo-pins"></div>
+
+            <div class="demo-reticle" id="zs-demo-reticle">
+              <div class="demo-reticle-tag mono" id="zs-demo-reticle-tag">&lt;Component&gt;</div>
+            </div>
+
+            <div class="demo-popover" id="zs-demo-popover">
+              <div style="display:flex;align-items:center;justify-content:space-between">
+                <div style="display:flex;align-items:center;gap:6px">
+                  <span style="padding:2px 6px;border-radius:4px;background:rgba(0,113,227,0.2);color:#60a5fa;font-size:10px;font-weight:700">REACT</span>
+                  <span class="mono" style="font-size:11px;font-weight:600" id="zs-pop-comp">&lt;OrderSummaryCard&gt;</span>
+                </div>
+                <button type="button" id="zs-pop-close" style="background:none;border:none;color:#9ca3af;cursor:pointer;font-size:14px">✕</button>
+              </div>
+              <textarea id="zs-pop-note" placeholder="Add feedback or AI instruction (e.g. Match @ref)..."></textarea>
+              <div style="display:flex;align-items:center;justify-content:space-between;gap:6px">
+                <button type="button" id="zs-pop-ref" style="padding:3px 8px;border-radius:5px;border:none;background:#0071e3;color:#fff;font-size:10.5px;font-weight:600;cursor:pointer">@stripe-card</button>
+                <button type="button" id="zs-pop-save" style="padding:5px 11px;border-radius:7px;border:none;background:#0071e3;color:#fff;font-size:11.5px;font-weight:600;cursor:pointer">✓ Save Pin</button>
+              </div>
+            </div>
+
+            <div class="demo-hud" id="zs-demo-hud">
+              <span style="display:inline-flex;width:20px;height:20px;margin:0 4px"><svg viewBox="0 0 512 512" fill="none" aria-hidden="true">
+  <rect x="16" y="16" width="480" height="480" rx="120" fill="#1d1d1f" stroke="#545458" stroke-width="14"/>
+  <path fill="#ffffff" d="M124 128H286V166H162V248H124V128Z"/>
+  <path fill="#ffffff" d="M124 290H162V346H214V384H124V290Z"/>
+  <path fill="#ffffff" d="M232 346H350V276H388V384H232V346Z"/>
+  <line x1="178" y1="330" x2="314" y2="194" stroke="#ffffff" stroke-width="40"/>
+  <circle cx="358" cy="158" r="34" fill="#0071e3"/>
+</svg></span>
+              <button type="button" class="demo-hud-tool active" data-demo-mode="inspect">Inspect</button>
+              <button type="button" class="demo-hud-tool" data-demo-mode="guides">Redlines</button>
+              <button type="button" class="demo-hud-tool" data-demo-mode="a11y">WCAG</button>
+              <span style="width:1px;height:14px;background:rgba(255,255,255,0.16);margin:0 2px"></span>
+              <span style="padding:3px 9px;border-radius:999px;background:#0071e3;color:#fff;font-size:11px;font-weight:700" data-zs-pin-count>2</span>
+              <button type="button" id="zs-hud-clear" title="Clear all pins" style="height:26px;padding:0 7px;border-radius:999px;border:none;background:transparent;color:#9ca3af;cursor:pointer;font-size:11px">Clear</button>
+              <button type="button" id="zs-hud-min" title="Minimize to circular logo (Off)" style="height:26px;width:26px;border-radius:999px;border:none;background:transparent;color:#9ca3af;cursor:pointer">✕</button>
+            </div>
+
+            <button type="button" class="demo-fab" id="zs-demo-fab" title="ZSpect Off — Click to resume">
+              <span style="width:22px;height:22px;display:inline-flex"><svg viewBox="0 0 512 512" fill="none" aria-hidden="true">
+  <rect x="16" y="16" width="480" height="480" rx="120" fill="#1d1d1f" stroke="#545458" stroke-width="14"/>
+  <path fill="#ffffff" d="M124 128H286V166H162V248H124V128Z"/>
+  <path fill="#ffffff" d="M124 290H162V346H214V384H124V290Z"/>
+  <path fill="#ffffff" d="M232 346H350V276H388V384H232V346Z"/>
+  <line x1="178" y1="330" x2="314" y2="194" stroke="#ffffff" stroke-width="40"/>
+  <circle cx="358" cy="158" r="34" fill="#0071e3"/>
+</svg></span>
+            </button>
+          </div>
+
+          <aside class="demo-sidepanel">
+            <div class="demo-sp-header">
+              <div style="display:flex;align-items:center;gap:7px;font-weight:700;font-size:13px">
+                <span style="width:18px;height:18px;display:inline-flex"><svg viewBox="0 0 512 512" fill="none" aria-hidden="true">
+  <rect x="16" y="16" width="480" height="480" rx="120" fill="#1d1d1f" stroke="#545458" stroke-width="14"/>
+  <path fill="#ffffff" d="M124 128H286V166H162V248H124V128Z"/>
+  <path fill="#ffffff" d="M124 290H162V346H214V384H124V290Z"/>
+  <path fill="#ffffff" d="M232 346H350V276H388V384H232V346Z"/>
+  <line x1="178" y1="330" x2="314" y2="194" stroke="#ffffff" stroke-width="40"/>
+  <circle cx="358" cy="158" r="34" fill="#0071e3"/>
+</svg></span>
+                <span>Live AI Prompt</span>
+              </div>
+              <button type="button" id="zs-demo-copy-btn" style="padding:4px 10px;border-radius:6px;border:none;background:#0071e3;color:#fff;font-size:11px;font-weight:600;cursor:pointer">Copy Prompt</button>
+            </div>
+            <pre class="demo-sp-pre mono" id="zs-demo-prompt"></pre>
+            <div style="display:flex;justify-content:space-between;font-size:11px;color:#9ca3af">
+              <span>Pins in session: <strong style="color:#fff" data-zs-pin-count>2</strong></span>
+              <span>Exports: .xlsx · .zip · .md</span>
+            </div>
+          </aside>
+        </div>
+      </div>
+    </div>
       </div>
     </section>
 
-    <div class="grid-3">
-      <div class="feat-box">
-        <h3>Zero-Install Framework X-Ray</h3>
-        <p>Detects React 16–19 Fiber, Vue 3, Svelte, Astro &amp; Angular components with one-click Cursor, VS Code, and Windsurf source links.</p>
+    <section class="landing-section" id="capabilities">
+      <div class="wrap">
+        <div class="sec-header">
+          <span class="sec-kicker">Precision Engineering</span>
+          <h2>Everything repo overlays and raw DevTools leave behind.</h2>
+          <p>Four runtime layers work inside an isolated Closed Shadow DOM so host styles, modals, and minified production bundles never get in your way.</p>
+        </div>
+
+        <div class="bento-grid">
+          <article class="bento-card col-7">
+            <div>
+              <h3>Zero-Install Framework &amp; Source X-Ray</h3>
+              <p>Walks React 16–19 Fiber trees, Vue 3 instances, Svelte, Astro, and Angular nodes directly in the page's <code>MAIN</code> world—filtering minified symbols and linking straight to Cursor, VS Code, or Windsurf.</p>
+            </div>
+            <div class="bento-visual mono">
+              <div class="xray-chain">
+                <span class="xray-pill">&lt;button#confirm&gt;</span>
+                <span>→</span>
+                <span class="xray-pill">&lt;CheckoutPage&gt;</span>
+                <span>→</span>
+                <span class="xray-pill highlight">&lt;SubmitOrderButton&gt;</span>
+                <span>→</span>
+                <span class="xray-pill">cursor://file/.../SubmitButton.tsx:88</span>
+              </div>
+            </div>
+          </article>
+
+          <article class="bento-card col-5">
+            <div>
+              <h3>Cross-Tab <code>@ref</code> Design Vault</h3>
+              <p>Inspect any reference website—Stripe, Linear, Apple—save its clean DOM skeleton, CSS custom properties, and motion curves as <code>@ref</code>, then attach it to pins on your own tab.</p>
+            </div>
+            <div class="bento-visual mono" style="display:flex;flex-direction:column;gap:6px">
+              <div style="color:var(--accent-bright);font-weight:600">@ref:stripe-card</div>
+              <div style="color:var(--text-secondary)">--radius-card: 16px · gap: 12px</div>
+              <div style="color:var(--emerald)">Tailwind v4: rounded-[16px] p-6 gap-3</div>
+            </div>
+          </article>
+
+          <article class="bento-card col-6">
+            <div>
+              <h3>VisBug Visual Toolkit + <code>Diff-to-Pin</code></h3>
+              <p>Measure pixel redlines (<code>G</code>), audit live WCAG 2.1 AA/AAA contrast (<code>A</code>), nudge box spacing with arrow keys (<code>P</code>/<code>M</code>), reorder Flex siblings (<code>F</code>), and record structured <code>Before → After</code> diffs with Undo/Redo.</p>
+            </div>
+            <div class="bento-visual mono">
+              <div>padding-inline: <span style="color:var(--text-muted)">12px</span> → <strong style="color:var(--accent-bright)">20px</strong></div>
+              <div>border-radius: <span style="color:var(--text-muted)">6px</span> → <strong style="color:var(--accent-bright)">10px</strong></div>
+            </div>
+          </article>
+
+          <article class="bento-card col-6">
+            <div>
+              <h3>30-Second Flight Capsule &amp; Secret Redactor</h3>
+              <p>Automatically attaches recent user breadcrumbs, console errors, and failed or slow <code>fetch</code>/<code>XHR</code> calls while scrubbing tokens, cookies, API keys, and passwords before storage.</p>
+            </div>
+            <div class="bento-visual mono">
+              <div style="color:var(--amber)">[502] POST /api/v2/orders (1840ms)</div>
+              <div style="color:var(--text-secondary)">Authorization: Bearer <span style="color:var(--emerald)">[REDACTED]</span></div>
+            </div>
+          </article>
+        </div>
       </div>
-      <div class="feat-box">
-        <h3>Cross-Tab @ref Vault</h3>
-        <p>Extract clean DOM skeletons, CSS tokens, and motion curves from any website and attach them to prompts on your own project tab.</p>
+    </section>
+
+    <section class="landing-section" id="outputs">
+      <div class="wrap">
+        <div class="sec-header">
+          <span class="sec-kicker">Structured Handoff</span>
+          <h2>One session. Ready for Claude Code, Cursor, Linear, or Excel QA.</h2>
+          <p>Switch output formats anytime inside Chrome's native Side Panel without recapturing a single pin.</p>
+        </div>
+
+        <div class="pill-tabs" data-tab-group="landing-out">
+          <button type="button" class="pill-tab active" data-tab-target="lo-prompt">AI Coding Prompt</button>
+          <button type="button" class="pill-tab" data-tab-target="lo-excel">Excel Workbook (.xlsx + Embedded Images)</button>
+          <button type="button" class="pill-tab" data-tab-target="lo-zip">Portable .zip Bundle</button>
+        </div>
+
+        <div id="lo-prompt" class="tab-panel active" data-tab-panel="landing-out">
+          <div class="code-card">
+            <div class="code-card-bar">
+              <span class="mono">Standard Density · ~320 tokens</span>
+              <button type="button" class="copy-code-btn" data-copy-target="#landing-prompt-sample">Copy Sample</button>
+            </div>
+            <pre id="landing-prompt-sample"><code># ZSpect Visual Feedback — AcmePay Checkout QA (2 items)
+
+## [#1] [BUG · CRITICAL] Submit order returns HTTP 502 &amp; padding mismatch
+- **Page:** https://staging.acmepay.io/checkout (1440×900)
+- **Component:** `&lt;SubmitOrderButton&gt;` (`src/checkout/SubmitButton.tsx:88:5`)
+- **Selector:** `button#confirm-charge`
+- **VisBug Diff:** `padding-inline: 12px → 20px`
+- **Reference Attached:** `@ref:stripe-card` (`rounded-[16px] p-6 border border-[#e2e8f0]`)
+- **30s Flight Capsule:** `POST /api/v2/orders → 502 Bad Gateway (1840ms)`</code></pre>
+          </div>
+        </div>
+
+        <div id="lo-excel" class="tab-panel" data-tab-panel="landing-out">
+          <div class="comp-table-wrap">
+            <table class="comp-table">
+              <thead>
+                <tr>
+                  <th>ID</th>
+                  <th>Type</th>
+                  <th>Severity</th>
+                  <th>Annotated Screenshot</th>
+                  <th>Component &amp; Selector</th>
+                  <th>Description &amp; Diff</th>
+                </tr>
+              </thead>
+              <tbody>
+                <tr>
+                  <td class="mono">#1</td>
+                  <td>BUG</td>
+                  <td><span style="color:var(--amber);font-weight:700">CRITICAL</span></td>
+                  <td><code>[Embedded PNG 560×200]</code></td>
+                  <td class="mono">&lt;SubmitOrderButton&gt;<br/>button#confirm-charge</td>
+                  <td>POST /api/v2/orders 502 timeout · Diff: padding-inline 12px → 20px</td>
+                </tr>
+                <tr>
+                  <td class="mono">#2</td>
+                  <td>A11Y</td>
+                  <td><span style="color:var(--accent-bright);font-weight:700">MEDIUM</span></td>
+                  <td><code>[Embedded PNG 560×200]</code></td>
+                  <td class="mono">&lt;EnvStatusBadge&gt;<br/>span.env-pill</td>
+                  <td>WCAG contrast 4.12:1 below 4.5:1 AA threshold</td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+        </div>
+
+        <div id="lo-zip" class="tab-panel" data-tab-panel="landing-out">
+          <div class="code-card">
+            <div class="code-card-bar"><span class="mono">acmepay-checkout-qa-bundle.zip</span></div>
+            <pre><code>acmepay-checkout-qa-bundle/
+├── report.md                      # Full Markdown report with relative image links
+├── screenshots/
+│   ├── pin-01.png                 # Retina cropped region + #1 badge overlay
+│   └── pin-02.png                 # Retina cropped region + #2 badge overlay
+└── references/
+    └── ref-stripe-card.png        # Cross-tab @ref visual snapshot</code></pre>
+          </div>
+        </div>
       </div>
-      <div class="feat-box">
-        <h3>VisBug Diff &amp; .xlsx Export</h3>
-        <p>Measure redlines, audit WCAG 2.1 contrast, nudge spacing with Undo/Redo, and export 2-sheet Excel reports with embedded screenshots.</p>
+    </section>
+
+    <section class="landing-section" id="compare">
+      <div class="wrap">
+        <div class="sec-header">
+          <span class="sec-kicker">Why ZSpect</span>
+          <h2>Universal reach meets visual precision.</h2>
+        </div>
+
+        <div class="comp-table-wrap">
+          <table class="comp-table">
+            <thead>
+              <tr>
+                <th>Capability</th>
+                <th>ZSpect</th>
+                <th>Repo-Bound Overlays</th>
+                <th>ProjectVisBug</th>
+                <th>Browser DevTools</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr>
+                <td>Works on staging, production &amp; any third-party URL (Zero-Install)</td>
+                <td class="check-yes">Yes</td>
+                <td class="check-no">Dev repo only</td>
+                <td class="check-yes">Yes</td>
+                <td class="check-yes">Yes</td>
+              </tr>
+              <tr>
+                <td>React, Vue, Svelte, Astro &amp; Angular component + IDE links</td>
+                <td class="check-yes">Built-in</td>
+                <td>React only</td>
+                <td class="check-no">No</td>
+                <td>Separate extensions</td>
+              </tr>
+              <tr>
+                <td>Cross-tab <code>@ref</code> design token &amp; motion vault</td>
+                <td class="check-yes">Yes</td>
+                <td class="check-no">No</td>
+                <td class="check-no">No</td>
+                <td class="check-no">No</td>
+              </tr>
+              <tr>
+                <td>VisBug live spacing/flex tweaks saved as <code>Before → After</code> diffs</td>
+                <td class="check-yes">Yes (with Undo/Redo)</td>
+                <td class="check-no">No</td>
+                <td>Lost on reload</td>
+                <td>Manual copy</td>
+              </tr>
+              <tr>
+                <td>30s Console/Network flight capsule with automatic secret redaction</td>
+                <td class="check-yes">Automatic</td>
+                <td class="check-no">No</td>
+                <td class="check-no">No</td>
+                <td>Manual</td>
+              </tr>
+              <tr>
+                <td>2-sheet Excel (<code>.xlsx</code> + embedded images), <code>.zip</code>, <code>.md</code> &amp; AI Prompt</td>
+                <td class="check-yes">All built-in</td>
+                <td>Markdown prompt</td>
+                <td class="check-no">No</td>
+                <td class="check-no">No</td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
       </div>
-    </div>
+    </section>
+
+    <section class="landing-section" style="text-align:center">
+      <div class="wrap" style="max-width:680px">
+        <h2 style="font-size:clamp(28px,3.6vw,42px);letter-spacing:-0.03em;margin:0 0 14px">Ready to inspect without boundaries?</h2>
+        <p style="color:var(--text-secondary);font-size:16.5px;margin:0 0 26px">Free, MIT-licensed, and 100% local in your browser. Install in 20 seconds or explore the full documentation.</p>
+        <div class="hero-cta-row">
+          <a class="btn btn-primary" href="https://github.com/zane-tv/zspect/releases/download/v1.0.0/zspect-1.0.0-chrome.zip">Download v1.0.0 (.zip)</a>
+          <a class="btn btn-secondary" href="./docs/install/">Installation Guide</a>
+          <a class="btn btn-secondary" href="./docs/">Explore Docs</a>
+        </div>
+      </div>
+    </section>
   </main>
 
-  <footer class="footer">
-    <div>© 2026 Zane (<a href="https://github.com/zane-tv">@zane-tv</a>) · MIT License</div>
-    <div class="footer-links">
-      <a href="./privacy/">Privacy Policy</a>
-      <a href="./terms/">Terms of Service</a>
-      <a href="https://github.com/zane-tv/zspect">Source Code</a>
-      <a href="mailto:tientv.63.work@gmail.com">Contact</a>
+  <footer class="site-footer">
+    <div class="wrap site-footer-inner">
+      <div>© 2026 Zane (<a href="https://github.com/zane-tv">@zane-tv</a>) · Released under the MIT License.</div>
+      <div class="footer-links">
+        <a href="./docs/">Docs</a>
+        <a href="./docs/install/">Install</a>
+        <a href="./docs/output/">Output</a>
+        <a href="./privacy/">Privacy</a>
+        <a href="./terms/">Terms</a>
+        <a href="https://github.com/zane-tv/zspect">GitHub</a>
+      </div>
     </div>
   </footer>
 </body>
