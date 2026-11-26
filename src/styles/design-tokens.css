@@ -293,7 +293,7 @@ body {
   background-color: var(--zs-bg-card);
   color: var(--zs-text);
   border: 1px solid var(--zs-border);
-  border-radius: 20px;
+  border-radius: 12px;
   box-shadow: var(--zs-card-shadow);
 }
 
@@ -301,7 +301,7 @@ body {
   background-color: var(--zs-bg-card);
   color: var(--zs-text);
   border: 1px solid var(--zs-border-strong);
-  border-radius: 22px;
+  border-radius: 14px;
   box-shadow: var(--zs-popover-shadow);
 }
 
@@ -314,20 +314,22 @@ body {
   background-color: var(--zs-bg-card);
   color: var(--zs-text);
   border: 1px solid var(--zs-input-border);
-  transition: border-color 150ms ease, box-shadow 150ms ease;
+  border-radius: 8px;
+  transition: border-color 140ms ease, box-shadow 140ms ease;
 }
 
 .zs-input:focus {
   outline: none;
   border-color: var(--zs-blue);
-  box-shadow: 0 0 0 3px rgba(0, 113, 227, 0.15);
+  box-shadow: 0 0 0 2px rgba(0, 113, 227, 0.16);
 }
 
 .zs-input-subtle {
   background-color: var(--zs-bg-subtle);
   color: var(--zs-text);
   border: 1px solid var(--zs-border);
-  transition: border-color 150ms ease, background-color 150ms ease;
+  border-radius: 8px;
+  transition: border-color 140ms ease, background-color 140ms ease;
 }
 
 .zs-input-subtle:focus {
@@ -342,25 +344,26 @@ body {
   -webkit-appearance: none;
   background-image: var(--zs-select-arrow);
   background-repeat: no-repeat;
-  background-position: right 12px center;
-  background-size: 12px 12px;
-  padding-right: 32px !important;
+  background-position: right 8px center;
+  background-size: 11px 11px;
+  padding-right: 24px !important;
   cursor: pointer;
 }
 
 .zs-segmented {
   background-color: var(--zs-bg-subtle);
   border: 1px solid var(--zs-border);
-  border-radius: 9999px;
-  padding: 3px;
+  border-radius: 8px;
+  padding: 2px;
 }
 
 .zs-segmented-btn {
   color: var(--zs-text-secondary);
-  border-radius: 9999px;
+  border-radius: 6px;
   border: 1px solid transparent;
   background: transparent;
-  transition: background-color 150ms ease, color 150ms ease, box-shadow 150ms ease;
+  font-size: 12px;
+  transition: background-color 140ms ease, color 140ms ease, box-shadow 140ms ease;
 }
 
 .zs-segmented-btn:hover {
@@ -378,8 +381,8 @@ body {
   background: transparent;
   border: none;
   color: var(--zs-text);
-  border-radius: 9999px;
-  transition: background-color 150ms ease, color 150ms ease;
+  border-radius: 7px;
+  transition: background-color 140ms ease, color 140ms ease;
 }
 
 .zs-icon-btn:hover {
@@ -398,14 +401,14 @@ body {
   background-color: var(--zs-blue);
   color: #ffffff;
   font-family: var(--font-sf-pro-text);
-  font-size: 13px;
+  font-size: 12px;
   font-weight: 500;
-  line-height: 18px;
-  letter-spacing: -0.15px;
-  border-radius: 9999px;
+  line-height: 16px;
+  letter-spacing: -0.12px;
+  border-radius: 8px;
   border: 1px solid transparent;
-  box-shadow: 0 1px 2px rgba(0, 113, 227, 0.25);
-  transition: opacity 150ms ease, transform 120ms cubic-bezier(0.22, 1, 0.36, 1);
+  box-shadow: 0 1px 2px rgba(0, 113, 227, 0.22);
+  transition: opacity 140ms ease, transform 120ms cubic-bezier(0.22, 1, 0.36, 1);
 }
 
 .zs-btn-primary:hover:not(:disabled) {
@@ -425,14 +428,14 @@ body {
   justify-content: center;
   background-color: var(--zs-bg-card);
   color: var(--zs-text);
-  border: 1px solid var(--zs-input-border);
+  border: 1px solid var(--zs-border-strong);
   font-family: var(--font-sf-pro-text);
-  font-size: 13px;
+  font-size: 12px;
   font-weight: 500;
-  line-height: 18px;
-  letter-spacing: -0.15px;
-  border-radius: 9999px;
-  transition: background-color 150ms ease, border-color 150ms ease, transform 120ms cubic-bezier(0.22, 1, 0.36, 1);
+  line-height: 16px;
+  letter-spacing: -0.12px;
+  border-radius: 8px;
+  transition: background-color 140ms ease, border-color 140ms ease, transform 120ms cubic-bezier(0.22, 1, 0.36, 1);
 }
 
 .zs-btn-outline:hover:not(:disabled) {

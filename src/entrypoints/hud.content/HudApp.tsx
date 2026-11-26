@@ -1846,7 +1846,7 @@ export function HudApp() {
                   .sendMessage({ type: 'ZSPECT_OPEN_SIDEPANEL' } satisfies ZSpectRuntimeMessage)
                   .catch(() => {});
               }}
-              style={{ height: '28px', padding: '0 10px', gap: '5px', fontSize: '12px' }}
+              style={{ height: '28px', padding: '0 10px', gap: '5px', fontSize: '12px', borderRadius: '9999px' }}
               class="zs-btn-primary zs-pressable shrink-0 whitespace-nowrap cursor-pointer"
             >
               <PanelRightOpen size={13} />

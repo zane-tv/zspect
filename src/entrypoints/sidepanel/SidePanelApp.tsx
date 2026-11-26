@@ -4,7 +4,6 @@ import {
   Check,
   Copy,
   Crosshair,
-  Download,
   ExternalLink,
   FileSpreadsheet,
   FileText,
@@ -12,6 +11,7 @@ import {
   Image as ImageIcon,
   LocateFixed,
   Moon,
+  Pencil,
   Plus,
   Search,
   Sparkles,
@@ -59,7 +59,7 @@ import type {
   ZSpectRuntimeMessage,
 } from '@/types/zspect';
 
-function ZSpectLogoIcon({ className = 'w-7 h-7' }: { className?: string }) {
+function ZSpectLogoIcon({ className = 'w-5 h-5' }: { className?: string }) {
   return (
     <svg viewBox="0 0 512 512" class={className} fill="none" aria-hidden="true">
       <rect
@@ -70,7 +70,7 @@ function ZSpectLogoIcon({ className = 'w-7 h-7' }: { className?: string }) {
         rx="120"
         fill="#1d1d1f"
         stroke="#545458"
-        stroke-width="12"
+        stroke-width="14"
       />
       <path fill="#ffffff" d="M124 128H286V166H162V248H124V128Z" />
       <path fill="#ffffff" d="M124 290H162V346H214V384H124V290Z" />
@@ -161,12 +161,12 @@ function PinCard({
     (pin.flightCapsule?.networkIssues.length ?? 0);
 
   return (
-    <article class="zs-card zs-anim-card p-5 flex flex-col gap-3.5">
-      {/* Top Meta Row */}
-      <div class="flex items-center justify-between gap-2">
-        <div class="flex items-center gap-2 min-w-0">
+    <article class="zs-card zs-anim-card p-2.5 flex flex-col gap-2">
+      {/* Compact Header Row */}
+      <div class="flex items-center justify-between gap-1.5">
+        <div class="flex items-center gap-1.5 min-w-0">
           <span
-            class={`w-7 h-7 rounded-full text-white text-[12px] font-semibold flex items-center justify-center shrink-0 ${
+            class={`w-5 h-5 rounded-[6px] text-white text-[11px] font-semibold flex items-center justify-center shrink-0 ${
               pin.severity === 'critical' || pin.severity === 'high'
                 ? 'bg-[#b64400]'
                 : 'bg-[#0071e3]'
@@ -174,11 +174,11 @@ function PinCard({
           >
             #{pin.orderIndex}
           </span>
-          <span class="text-[12px] font-semibold uppercase tracking-tight truncate">
+          <span class="text-[11px] font-semibold uppercase tracking-tight truncate">
             {pin.type}
           </span>
           {(pin.severity === 'critical' || pin.severity === 'high') && (
-            <span class="zs-status-urgent uppercase shrink-0">{pin.severity}</span>
+            <span class="zs-status-urgent text-[10.5px] uppercase shrink-0">{pin.severity}</span>
           )}
         </div>
 
@@ -190,54 +190,54 @@ function PinCard({
                 status: (e.target as HTMLSelectElement).value as PinStatus,
               }).then(onReload);
             }}
-            class="h-8 zs-input-subtle zs-select rounded-full pl-3 text-[12px] font-medium"
+            class="h-6 zs-input-subtle zs-select pl-2 text-[11px] font-medium"
           >
             <option value="open">Open</option>
-            <option value="in-progress">In Progress</option>
-            <option value="resolved">Resolved</option>
+            <option value="in-progress">WIP</option>
+            <option value="resolved">Done</option>
           </select>
 
           <button
             type="button"
             title={t.scrollToPinTooltip}
             onClick={() => void handleJumpToElement()}
-            class="w-8 h-8 flex items-center justify-center zs-icon-btn zs-muted zs-pressable cursor-pointer"
+            class="w-6 h-6 flex items-center justify-center zs-icon-btn zs-muted zs-pressable cursor-pointer"
           >
-            <LocateFixed size={15} />
+            <LocateFixed size={13} />
           </button>
 
           <button
             type="button"
             title={t.deleteItemTooltip}
             onClick={() => void deletePin(pin.id).then(onReload)}
-            class="w-8 h-8 flex items-center justify-center zs-icon-btn zs-muted hover:text-[#ff453a] zs-pressable cursor-pointer"
+            class="w-6 h-6 flex items-center justify-center zs-icon-btn zs-muted hover:text-[#ff453a] zs-pressable cursor-pointer"
           >
-            <Trash2 size={15} />
+            <Trash2 size={13} />
           </button>
         </div>
       </div>
 
       {/* Cropped Annotated Screenshot */}
       {imgUrl && (
-        <div class="relative rounded-[16px] overflow-hidden zs-subtle-box">
+        <div class="relative rounded-[8px] overflow-hidden zs-subtle-box">
           <img
             src={imgUrl}
             alt={`Pin #${pin.orderIndex}`}
-            class="w-full max-h-[190px] object-contain block"
+            class="w-full max-h-[140px] object-contain block"
           />
           <button
             type="button"
             onClick={() => void handleCopyImage()}
-            class="absolute bottom-2.5 right-2.5 zs-frosted-hud zs-pressable h-8 px-3 text-[12px] font-medium flex items-center gap-1.5 cursor-pointer"
+            class="absolute bottom-1.5 right-1.5 zs-frosted-hud zs-pressable h-6 px-2 text-[11px] font-medium flex items-center gap-1 cursor-pointer"
           >
-            <ImageIcon size={13} />
+            <ImageIcon size={11} />
             <span>{t.copyImgShort}</span>
           </button>
         </div>
       )}
 
       {/* Component / File / Page Metadata */}
-      <div class="zs-subtle-box rounded-[14px] px-3.5 py-2.5 text-[12px] flex flex-col gap-1">
+      <div class="zs-subtle-box rounded-[8px] px-2.5 py-1.5 text-[11px] flex flex-col gap-0.5">
         <div class="flex items-center justify-between gap-2">
           <span class="font-medium truncate" title={pin.selector}>
             {pin.frameworkMeta.componentName
@@ -247,13 +247,13 @@ function PinCard({
           {pin.frameworkMeta.sourceLocation && (
             <a
               href={buildIdeDeepLink(pin.frameworkMeta.sourceLocation, ide)}
-              class="zs-link flex items-center gap-1 font-medium shrink-0"
+              class="zs-link text-[11px] flex items-center gap-0.5 font-medium shrink-0"
             >
-              {t.openIdePrefix} {ide} <ExternalLink size={12} />
+              {ide} <ExternalLink size={10} />
             </a>
           )}
         </div>
-        <div class="zs-muted truncate text-[11px]" title={pin.pageUrl}>
+        <div class="zs-muted truncate text-[10.5px]" title={pin.pageUrl}>
           {pin.pageUrl} · {pin.viewport.width}×{pin.viewport.height}
         </div>
       </div>
@@ -269,21 +269,21 @@ function PinCard({
           }
         }}
         placeholder={t.notePlaceholder}
-        class="w-full zs-input rounded-[14px] px-3.5 py-2.5 text-[13px] resize-y"
+        class="w-full zs-input px-2.5 py-1.5 text-[12px] leading-snug resize-y"
       />
 
       {/* VisBug Before -> After Diff Preview */}
       {pin.visualDiff && (
-        <div class="zs-subtle-box rounded-[14px] px-3.5 py-2.5 text-[12px] flex flex-col gap-1">
+        <div class="zs-subtle-box rounded-[8px] px-2.5 py-1.5 text-[11px] flex flex-col gap-0.5">
           <span class="font-semibold">VisBug Diff (Before → After)</span>
-          {pin.visualDiff.styleChanges.slice(0, 4).map((sc) => (
-            <div key={sc.property} class="font-mono text-[11px] zs-muted truncate">
+          {pin.visualDiff.styleChanges.slice(0, 3).map((sc) => (
+            <div key={sc.property} class="font-mono text-[10.5px] zs-muted truncate">
               {sc.property}: {sc.before} → <strong class="zs-link">{sc.after}</strong>
             </div>
           ))}
           {pin.visualDiff.textChange && (
             <div class="zs-muted truncate">
-              Text: "{pin.visualDiff.textChange.before}" →{' '}
+              "{pin.visualDiff.textChange.before}" →{' '}
               <strong class="zs-link">"{pin.visualDiff.textChange.after}"</strong>
             </div>
           )}
@@ -292,9 +292,9 @@ function PinCard({
 
       {/* A11y Snapshot */}
       {pin.a11yAudit && (pin.type === 'a11y' || pin.a11yAudit.issues.length > 0) && (
-        <div class="text-[12px] zs-muted flex items-center justify-between zs-subtle-box px-3.5 py-2 rounded-[12px]">
-          <span class="truncate">WCAG Contrast: {pin.a11yAudit.contrastRatio}:1</span>
-          <span class={`shrink-0 ${pin.a11yAudit.wcagAA ? 'font-medium' : 'zs-status-urgent'}`}>
+        <div class="text-[11px] zs-muted flex items-center justify-between zs-subtle-box px-2.5 py-1 rounded-[7px]">
+          <span class="truncate">WCAG {pin.a11yAudit.contrastRatio}:1</span>
+          <span class={`shrink-0 ${pin.a11yAudit.wcagAA ? 'font-medium' : 'zs-status-urgent text-[11px]'}`}>
             {pin.a11yAudit.wcagAA ? 'AA Pass' : 'AA FAIL'}
           </span>
         </div>
@@ -302,13 +302,13 @@ function PinCard({
 
       {/* Attached @ref Chips */}
       {pin.attachedRefIds.length > 0 && (
-        <div class="flex flex-wrap gap-2">
+        <div class="flex flex-wrap gap-1">
           {pin.attachedRefIds.map((rid) => {
             const ref = refMap.get(rid);
             return ref ? (
               <span
                 key={rid}
-                class="px-3 py-1 rounded-full zs-subtle-box text-[12px] zs-link font-medium truncate max-w-full"
+                class="px-2 py-0.5 rounded-[6px] zs-subtle-box text-[11px] zs-link font-medium truncate max-w-full"
               >
                 @ref:{ref.alias}
               </span>
@@ -317,49 +317,49 @@ function PinCard({
         </div>
       )}
 
-      {/* Bottom Action & Diagnostics Row (Wrap-safe on narrow panels) */}
+      {/* Bottom Action & Diagnostics Row */}
       <div
-        class="flex flex-wrap items-center justify-between gap-2 pt-2.5"
+        class="flex items-center justify-between gap-1.5 pt-1.5"
         style={{ borderTop: '1px solid var(--zs-border)' }}
       >
         {errorCount > 0 ? (
           <button
             type="button"
             onClick={() => setShowLogs((s) => !s)}
-            class="zs-status-urgent cursor-pointer hover:underline truncate"
+            class="zs-status-urgent text-[11px] cursor-pointer hover:underline truncate"
           >
             {errorCount} {t.errorsAttached} {showLogs ? '▲' : '▼'}
           </button>
         ) : (
-          <span class="text-[12px] zs-muted truncate">{t.readyForExport}</span>
+          <span class="text-[11px] zs-muted truncate">{t.readyForExport}</span>
         )}
 
-        <div class="flex items-center gap-1.5 shrink-0 ml-auto">
+        <div class="flex items-center gap-1 shrink-0 ml-auto">
           {pin.croppedImageBlob && (
             <button
               type="button"
               onClick={() => void handleCopyImage()}
-              class="zs-btn-outline zs-pressable h-8 px-3 gap-1.5 whitespace-nowrap cursor-pointer"
+              class="zs-btn-outline zs-pressable h-6.5 px-2 gap-1 text-[11px] whitespace-nowrap cursor-pointer"
             >
-              <ImageIcon size={13} />
+              <ImageIcon size={11} />
               <span>{t.copyImgShort}</span>
             </button>
           )}
           <button
             type="button"
             onClick={() => void handleCopySingleAi()}
-            class="zs-btn-outline zs-pressable h-8 px-3 gap-1.5 whitespace-nowrap cursor-pointer"
+            class="zs-btn-outline zs-pressable h-6.5 px-2 gap-1 text-[11px] whitespace-nowrap cursor-pointer"
           >
-            <Copy size={13} />
+            <Copy size={11} />
             <span>{t.copyAiShort}</span>
           </button>
         </div>
       </div>
 
       {showLogs && pin.flightCapsule && (
-        <div class="zs-subtle-box rounded-[14px] p-3 text-[11px] font-mono flex flex-col gap-1.5 max-h-44 overflow-auto">
+        <div class="zs-subtle-box rounded-[8px] p-2 text-[10.5px] font-mono flex flex-col gap-1 max-h-36 overflow-auto">
           {pin.flightCapsule.consoleErrors.map((err, idx) => (
-            <div key={`ce-${idx}`} class="zs-status-urgent break-words">
+            <div key={`ce-${idx}`} class="zs-status-urgent text-[10.5px] break-words">
               [{err.level}] {err.message}
             </div>
           ))}
@@ -395,10 +395,10 @@ function ReferenceCard({
   };
 
   return (
-    <article class="zs-card zs-anim-card p-5 flex flex-col gap-3.5">
-      <div class="flex items-center justify-between gap-2.5">
-        <div class="flex items-center gap-1.5 flex-1 min-w-0">
-          <span class="text-[13px] font-semibold zs-link shrink-0">@ref:</span>
+    <article class="zs-card zs-anim-card p-2.5 flex flex-col gap-2">
+      <div class="flex items-center justify-between gap-1.5">
+        <div class="flex items-center gap-1 flex-1 min-w-0">
+          <span class="text-[11.5px] font-semibold zs-link shrink-0">@ref:</span>
           <input
             type="text"
             value={aliasDraft}
@@ -411,50 +411,50 @@ function ReferenceCard({
                 });
               }
             }}
-            class="flex-1 min-w-0 h-8 zs-input-subtle rounded-full px-3 text-[13px] font-medium"
+            class="flex-1 min-w-0 h-6.5 zs-input-subtle px-2 text-[12px] font-medium"
           />
         </div>
         <button
           type="button"
           title={t.deleteItemTooltip}
           onClick={() => void deleteReference(refItem.id).then(onReload)}
-          class="w-8 h-8 shrink-0 flex items-center justify-center zs-icon-btn zs-muted hover:text-[#ff453a] zs-pressable cursor-pointer"
+          class="w-6 h-6 shrink-0 flex items-center justify-center zs-icon-btn zs-muted hover:text-[#ff453a] zs-pressable cursor-pointer"
         >
-          <Trash2 size={15} />
+          <Trash2 size={13} />
         </button>
       </div>
 
       {previewUrl && (
-        <div class="relative rounded-[16px] overflow-hidden zs-subtle-box">
+        <div class="relative rounded-[8px] overflow-hidden zs-subtle-box">
           <img
             src={previewUrl}
             alt={refItem.alias}
-            class="w-full max-h-[160px] object-contain block"
+            class="w-full max-h-[130px] object-contain block"
           />
           <button
             type="button"
             onClick={() => void handleCopyRefImg()}
-            class="absolute bottom-2.5 right-2.5 zs-frosted-hud zs-pressable h-8 px-3 text-[12px] font-medium flex items-center gap-1.5 cursor-pointer"
+            class="absolute bottom-1.5 right-1.5 zs-frosted-hud zs-pressable h-6 px-2 text-[11px] font-medium flex items-center gap-1 cursor-pointer"
           >
-            <ImageIcon size={13} />
+            <ImageIcon size={11} />
             <span>{t.copyImgShort}</span>
           </button>
         </div>
       )}
 
-      <div class="text-[12px] zs-muted truncate" title={refItem.sourceUrl}>
+      <div class="text-[11px] zs-muted truncate" title={refItem.sourceUrl}>
         {t.sourcePrefix} {refItem.sourceUrl}
       </div>
 
       {refItem.tailwindHint && (
-        <div class="zs-subtle-box rounded-[12px] p-3 font-mono text-[11px] break-words">
+        <div class="zs-subtle-box rounded-[8px] p-2 font-mono text-[10.5px] break-words">
           {refItem.tailwindHint}
         </div>
       )}
 
-      <div class="flex flex-wrap items-center justify-between gap-2 pt-1">
-        <span class="text-[12px] zs-muted">
-          {Object.keys(refItem.resolvedCssVars).length} CSS vars ·{' '}
+      <div class="flex items-center justify-between gap-2 pt-0.5">
+        <span class="text-[11px] zs-muted truncate">
+          {Object.keys(refItem.resolvedCssVars).length} vars ·{' '}
           {refItem.motionRules.transitions.length + refItem.motionRules.animations.length} motion
         </span>
         <button
@@ -463,9 +463,9 @@ function ReferenceCard({
             await navigator.clipboard.writeText(refItem.tailwindHint || refItem.domSkeleton);
             onNotify(`@ref:${refItem.alias} — DNA copied`);
           }}
-          class="zs-btn-outline zs-pressable h-8 px-3.5 gap-1.5 whitespace-nowrap cursor-pointer"
+          class="zs-btn-outline zs-pressable h-6.5 px-2.5 gap-1 text-[11px] whitespace-nowrap cursor-pointer"
         >
-          <Copy size={13} />
+          <Copy size={11} />
           <span>{t.copyDnaShort}</span>
         </button>
       </div>
@@ -495,7 +495,7 @@ export function SidePanelApp() {
     setToast(msg);
     window.setTimeout(() => {
       setToast((curr) => (curr === msg ? null : curr));
-    }, 2400);
+    }, 2200);
   };
 
   const loadWorkspace = async () => {
@@ -648,50 +648,49 @@ export function SidePanelApp() {
   };
 
   return (
-    <div data-theme={theme} class="min-h-screen flex flex-col zs-canvas overflow-x-hidden">
-      {/* 1. Apple Product Local Navigation Header */}
-      <header class="sticky top-0 z-20 zs-header px-5 pt-4 pb-3.5 flex flex-col gap-3">
-        <div class="flex items-center justify-between gap-2 min-w-0">
-          <div class="flex items-center gap-2 min-w-0">
-            <ZSpectLogoIcon className="w-7 h-7 shrink-0" />
-            <h1 class="text-[18px] font-semibold tracking-[0.1px] m-0 truncate">ZSpect</h1>
+    <div data-theme={theme} class="min-h-screen flex flex-col zs-canvas overflow-x-hidden text-[12px]">
+      {/* 1. High-Density Pro Inspector Header */}
+      <header class="sticky top-0 z-20 zs-header px-3 py-2 flex flex-col gap-1.5">
+        {/* Top Row: Brand + Quick Theme/Lang + Inspect */}
+        <div class="flex items-center justify-between gap-1.5 min-w-0">
+          <div class="flex items-center gap-1.5 min-w-0">
+            <ZSpectLogoIcon className="w-5 h-5 shrink-0" />
+            <span class="text-[13.5px] font-semibold tracking-[-0.15px] truncate">ZSpect</span>
           </div>
 
-          <div class="flex items-center gap-1.5 shrink-0">
-            {/* Language Switcher (Default EN) */}
+          <div class="flex items-center gap-1 shrink-0">
             <button
               type="button"
               title={t.switchLangTooltip}
               onClick={toggleLocale}
-              class="zs-btn-outline zs-pressable h-9 px-2.5 text-[11px] font-semibold uppercase tracking-wide shrink-0 cursor-pointer"
+              class="zs-btn-outline zs-pressable h-7 px-2 text-[10.5px] font-semibold uppercase tracking-wide cursor-pointer"
             >
               {locale}
             </button>
 
-            {/* Light / Dark Mode Switch */}
             <button
               type="button"
               title={theme === 'light' ? t.toggleDarkTooltip : t.toggleLightTooltip}
               aria-label="Toggle Light/Dark Theme"
               onClick={toggleTheme}
-              class="zs-btn-outline zs-pressable w-9 h-9 p-0 shrink-0 cursor-pointer"
+              class="zs-btn-outline zs-pressable w-7 h-7 p-0 cursor-pointer"
             >
-              {theme === 'light' ? <Moon size={16} /> : <Sun size={16} />}
+              {theme === 'light' ? <Moon size={13} /> : <Sun size={13} />}
             </button>
 
             <button
               type="button"
               onClick={() => void handleToggleInspectOnActiveTab()}
-              class="zs-btn-primary zs-pressable h-9 px-3.5 gap-1.5 shrink-0 whitespace-nowrap cursor-pointer"
+              class="zs-btn-primary zs-pressable h-7 px-2.5 gap-1 whitespace-nowrap cursor-pointer"
             >
-              <Crosshair size={14} />
+              <Crosshair size={12} />
               <span>{t.inspectTab}</span>
             </button>
           </div>
         </div>
 
-        {/* Session Selector Row */}
-        <div class="flex items-center gap-2 min-w-0">
+        {/* Session Row (Compact 28px) */}
+        <div class="flex items-center gap-1 min-w-0">
           <select
             value={currentSession?.id ?? ''}
             onChange={async (e) => {
@@ -699,7 +698,7 @@ export function SidePanelApp() {
               await setStoredSessionId(nextId);
               await loadWorkspace();
             }}
-            class="flex-1 min-w-0 h-9 zs-input-subtle zs-select rounded-full pl-3.5 text-[13px] font-medium truncate"
+            class="flex-1 min-w-0 h-7 zs-input-subtle zs-select pl-2.5 text-[12px] font-medium truncate"
           >
             {sessions.map((s) => (
               <option key={s.id} value={s.id}>
@@ -707,6 +706,23 @@ export function SidePanelApp() {
               </option>
             ))}
           </select>
+
+          {currentSession && (
+            <button
+              type="button"
+              title={t.sessionNameLabel}
+              onClick={async () => {
+                const nextName = window.prompt(t.sessionNameLabel, currentSession.title);
+                if (nextName && nextName.trim() !== currentSession.title) {
+                  await renameSession(currentSession.id, nextName.trim());
+                  await loadWorkspace();
+                }
+              }}
+              class="zs-btn-outline zs-pressable w-7 h-7 p-0 shrink-0 zs-muted cursor-pointer"
+            >
+              <Pencil size={12} />
+            </button>
+          )}
 
           <button
             type="button"
@@ -721,9 +737,9 @@ export function SidePanelApp() {
                 await loadWorkspace();
               }
             }}
-            class="zs-btn-outline zs-pressable w-9 h-9 p-0 shrink-0 cursor-pointer"
+            class="zs-btn-outline zs-pressable w-7 h-7 p-0 shrink-0 cursor-pointer"
           >
-            <Plus size={16} />
+            <Plus size={13} />
           </button>
 
           {currentSession && sessions.length > 1 && (
@@ -736,19 +752,19 @@ export function SidePanelApp() {
                   await loadWorkspace();
                 }
               }}
-              class="zs-btn-outline zs-pressable w-9 h-9 p-0 shrink-0 zs-muted hover:text-[#ff453a] cursor-pointer"
+              class="zs-btn-outline zs-pressable w-7 h-7 p-0 shrink-0 zs-muted hover:text-[#ff453a] cursor-pointer"
             >
-              <Trash2 size={15} />
+              <Trash2 size={12} />
             </button>
           )}
         </div>
 
-        {/* Segmented Tab Bar (Overflow-proof with truncate) */}
-        <nav class="grid grid-cols-3 zs-segmented text-[12.5px]">
+        {/* Sleek 28px Segmented Tab Bar */}
+        <nav class="grid grid-cols-3 zs-segmented">
           <button
             type="button"
             onClick={() => setActiveTab('pins')}
-            class={`h-8 px-1.5 truncate zs-segmented-btn zs-pressable cursor-pointer ${
+            class={`h-6.5 px-1.5 truncate zs-segmented-btn zs-pressable cursor-pointer ${
               activeTab === 'pins' ? 'zs-segmented-btn-active' : ''
             }`}
           >
@@ -757,7 +773,7 @@ export function SidePanelApp() {
           <button
             type="button"
             onClick={() => setActiveTab('refs')}
-            class={`h-8 px-1.5 truncate zs-segmented-btn zs-pressable cursor-pointer ${
+            class={`h-6.5 px-1.5 truncate zs-segmented-btn zs-pressable cursor-pointer ${
               activeTab === 'refs' ? 'zs-segmented-btn-active' : ''
             }`}
           >
@@ -766,7 +782,7 @@ export function SidePanelApp() {
           <button
             type="button"
             onClick={() => setActiveTab('export')}
-            class={`h-8 px-1.5 truncate zs-segmented-btn zs-pressable cursor-pointer ${
+            class={`h-6.5 px-1.5 truncate zs-segmented-btn zs-pressable cursor-pointer ${
               activeTab === 'export' ? 'zs-segmented-btn-active' : ''
             }`}
           >
@@ -776,28 +792,28 @@ export function SidePanelApp() {
       </header>
 
       {restrictedTabNotice && (
-        <div class="mx-5 mt-4 zs-card zs-anim-card p-4 text-[13px] zs-muted leading-relaxed">
+        <div class="mx-2.5 mt-2 zs-card zs-anim-card p-2.5 text-[11.5px] zs-muted leading-snug">
           {t.restrictedTabMsg}
         </div>
       )}
 
-      {/* 2. Main Tab Content */}
-      <main class="flex-1 p-5 flex flex-col gap-4 min-w-0">
+      {/* 2. Tight Pro-Density Main Content (px-2.5 py-2.5, gap-2) */}
+      <main class="flex-1 p-2.5 flex flex-col gap-2 min-w-0">
         {activeTab === 'pins' && (
           <>
-            {/* Search & Filter */}
-            <div class="flex items-center gap-2 min-w-0">
+            {/* Compact Search & Filter Row (30px) */}
+            <div class="flex items-center gap-1.5 min-w-0">
               <div class="relative flex-1 min-w-0">
                 <Search
-                  size={15}
-                  class="absolute left-3.5 top-1/2 -translate-y-1/2 zs-muted"
+                  size={13}
+                  class="absolute left-2.5 top-1/2 -translate-y-1/2 zs-muted"
                 />
                 <input
                   type="text"
                   value={searchQuery}
                   onInput={(e) => setSearchQuery((e.target as HTMLInputElement).value)}
                   placeholder={t.searchPlaceholder}
-                  class="w-full h-10 zs-input rounded-full pl-9 pr-3.5 text-[13px]"
+                  class="w-full h-7.5 zs-input pl-7.5 pr-2.5 text-[12px]"
                 />
               </div>
 
@@ -806,7 +822,7 @@ export function SidePanelApp() {
                 onChange={(e) =>
                   setTypeFilter((e.target as HTMLSelectElement).value as 'all' | PinType)
                 }
-                class="h-10 shrink-0 max-w-[138px] zs-input zs-select rounded-full pl-3.5 text-[12.5px] truncate"
+                class="h-7.5 shrink-0 max-w-[118px] zs-input zs-select pl-2.5 text-[11.5px] truncate"
               >
                 <option value="all">{t.filterAll}</option>
                 <option value="bug">{t.filterBug}</option>
@@ -819,12 +835,12 @@ export function SidePanelApp() {
             </div>
 
             {filteredPins.length === 0 ? (
-              <div class="zs-card zs-anim-card p-8 text-center flex flex-col items-center gap-3 my-2">
-                <div class="w-11 h-11 rounded-full zs-subtle-box flex items-center justify-center">
-                  <Crosshair size={22} class="zs-muted" />
+              <div class="zs-card zs-anim-card px-4 py-6 text-center flex flex-col items-center gap-2">
+                <div class="w-8 h-8 rounded-[8px] zs-subtle-box flex items-center justify-center">
+                  <Crosshair size={16} class="zs-muted" />
                 </div>
-                <div class="text-[15px] font-semibold">{t.emptyPinsTitle}</div>
-                <p class="text-[13px] zs-muted m-0 max-w-[260px] leading-relaxed">
+                <div class="text-[13px] font-semibold">{t.emptyPinsTitle}</div>
+                <p class="text-[11.5px] zs-muted m-0 max-w-[240px] leading-relaxed">
                   {t.emptyPinsDesc}
                 </p>
               </div>
@@ -846,15 +862,15 @@ export function SidePanelApp() {
 
         {activeTab === 'refs' && (
           <>
-            <div class="text-[13px] zs-muted leading-relaxed px-0.5">{t.refsIntro}</div>
+            <div class="text-[11.5px] zs-muted leading-snug px-0.5">{t.refsIntro}</div>
 
             {references.length === 0 ? (
-              <div class="zs-card zs-anim-card p-8 text-center flex flex-col items-center gap-3 my-2">
-                <div class="w-11 h-11 rounded-full zs-subtle-box flex items-center justify-center">
-                  <Bookmark size={22} class="zs-muted" />
+              <div class="zs-card zs-anim-card px-4 py-6 text-center flex flex-col items-center gap-2">
+                <div class="w-8 h-8 rounded-[8px] zs-subtle-box flex items-center justify-center">
+                  <Bookmark size={16} class="zs-muted" />
                 </div>
-                <div class="text-[15px] font-semibold">{t.emptyRefsTitle}</div>
-                <p class="text-[13px] zs-muted m-0 max-w-[260px] leading-relaxed">
+                <div class="text-[13px] font-semibold">{t.emptyRefsTitle}</div>
+                <p class="text-[11.5px] zs-muted m-0 max-w-[240px] leading-relaxed">
                   {t.emptyRefsDesc}
                 </p>
               </div>
@@ -874,139 +890,44 @@ export function SidePanelApp() {
 
         {activeTab === 'export' && (
           <>
-            {/* Session Title Editor & IDE Preference */}
-            {currentSession && (
-              <section class="zs-card zs-anim-card p-5 flex flex-col gap-4">
-                <div class="text-[15px] font-semibold tracking-[-0.2px]">
-                  {t.sessionAndIdeTitle}
-                </div>
-
-                <div class="flex flex-col gap-1.5">
-                  <label class="text-[12px] font-medium zs-muted">{t.sessionNameLabel}</label>
-                  <input
-                    type="text"
-                    value={currentSession.title}
-                    onBlur={(e) => {
-                      const val = (e.target as HTMLInputElement).value.trim();
-                      if (val && val !== currentSession.title) {
-                        void renameSession(currentSession.id, val).then(loadWorkspace);
-                      }
-                    }}
-                    class="h-10 w-full zs-input-subtle rounded-full px-4 text-[13px]"
-                  />
-                </div>
-
-                <div class="flex items-center justify-between gap-2.5 min-w-0">
-                  <span class="text-[13px] zs-muted whitespace-nowrap">{t.openSourceIdeLabel}</span>
-                  <select
-                    value={ideTarget}
-                    onChange={(e) =>
-                      setIdeTarget((e.target as HTMLSelectElement).value as IdeTarget)
-                    }
-                    class="h-9 shrink-0 zs-input zs-select rounded-full pl-3.5 text-[13px] font-medium"
-                  >
-                    <option value="cursor">Cursor</option>
-                    <option value="vscode">VS Code</option>
-                    <option value="windsurf">Windsurf</option>
-                  </select>
-                </div>
-
-                {/* Theme & Language Preferences inside Side Panel Settings */}
-                <div class="flex items-center justify-between gap-2.5 pt-1 border-t border-[var(--zs-border)]">
-                  <span class="text-[13px] zs-muted">
-                    {locale === 'vi' ? 'Giao diện & Ngôn ngữ:' : 'Theme & Language:'}
-                  </span>
-                  <div class="flex items-center gap-2 shrink-0">
-                    <button
-                      type="button"
-                      onClick={toggleTheme}
-                      class="zs-btn-outline zs-pressable h-8 px-3 gap-1.5 text-[12px] cursor-pointer"
-                    >
-                      {theme === 'light' ? <Moon size={13} /> : <Sun size={13} />}
-                      <span>{theme === 'light' ? 'Dark' : 'Light'}</span>
-                    </button>
-                    <button
-                      type="button"
-                      onClick={toggleLocale}
-                      class="zs-btn-outline zs-pressable h-8 px-3 text-[12px] font-semibold uppercase cursor-pointer"
-                    >
-                      {locale === 'en' ? 'EN → VI' : 'VI → EN'}
-                    </button>
-                  </div>
-                </div>
-              </section>
-            )}
-
-            {/* Export Files Card (.xlsx, .md, .zip) */}
-            <section class="zs-card zs-anim-card p-5 flex flex-col gap-4">
-              <div class="flex items-center justify-between gap-2">
-                <span class="text-[15px] font-semibold tracking-[-0.2px] truncate">
-                  {t.exportFilesTitle} ({filteredPins.length})
-                </span>
-                <Download size={16} class="zs-muted shrink-0" />
-              </div>
-
-              <div class="flex flex-col gap-2.5">
-                <button
-                  type="button"
-                  disabled={filteredPins.length === 0 || exportBusy !== null}
-                  onClick={() => void handleDownloadExcel()}
-                  class="zs-btn-primary zs-pressable h-10 px-4 gap-2 w-full cursor-pointer"
-                >
-                  <FileSpreadsheet size={16} class="shrink-0" />
-                  <span class="truncate">
-                    {exportBusy === 'xlsx' ? t.exportExcelBusy : t.exportExcelBtn}
-                  </span>
-                </button>
-
-                <div class="grid grid-cols-2 gap-2.5">
-                  <button
-                    type="button"
-                    disabled={filteredPins.length === 0}
-                    onClick={handleDownloadMarkdown}
-                    class="zs-btn-outline zs-pressable h-10 px-3 gap-1.5 min-w-0 cursor-pointer"
-                  >
-                    <FileText size={15} class="shrink-0" />
-                    <span class="truncate">{t.exportMdBtn}</span>
-                  </button>
-
-                  <button
-                    type="button"
-                    disabled={filteredPins.length === 0 || exportBusy !== null}
-                    onClick={() => void handleDownloadZipBundle()}
-                    class="zs-btn-outline zs-pressable h-10 px-3 gap-1.5 min-w-0 cursor-pointer"
-                  >
-                    <FolderArchive size={15} class="shrink-0" />
-                    <span class="truncate">
-                      {exportBusy === 'zip' ? t.exportZipBusy : t.exportZipBtn}
-                    </span>
-                  </button>
-                </div>
-              </div>
+            {/* 1. Compact Single-Row Preferences Strip (IDE + Theme + Language) */}
+            <section class="zs-card zs-anim-card px-3 py-2 flex items-center justify-between gap-2">
+              <span class="text-[12px] font-medium zs-muted whitespace-nowrap">
+                {t.openSourceIdeLabel}
+              </span>
+              <select
+                value={ideTarget}
+                onChange={(e) =>
+                  setIdeTarget((e.target as HTMLSelectElement).value as IdeTarget)
+                }
+                class="h-7 zs-input-subtle zs-select pl-2.5 text-[12px] font-medium"
+              >
+                <option value="cursor">Cursor</option>
+                <option value="vscode">VS Code</option>
+                <option value="windsurf">Windsurf</option>
+              </select>
             </section>
 
-            {/* AI Prompt & Image Clipboard Card */}
-            <section class="zs-card zs-anim-card p-5 flex flex-col gap-4">
+            {/* 2. AI Prompt & Image Clipboard Studio */}
+            <section class="zs-card zs-anim-card p-3 flex flex-col gap-2">
               <div class="flex items-center justify-between gap-2">
-                <div class="flex items-center gap-2 min-w-0">
-                  <Sparkles size={16} class="text-[#0071e3] shrink-0" />
-                  <span class="text-[15px] font-semibold tracking-[-0.2px] truncate">
-                    {t.aiCompilerTitle}
-                  </span>
+                <div class="flex items-center gap-1.5 min-w-0">
+                  <Sparkles size={13} class="text-[#0071e3] shrink-0" />
+                  <span class="text-[12.5px] font-semibold truncate">{t.aiCompilerTitle}</span>
                 </div>
-                <span class="text-[12px] font-medium zs-muted tabular-nums shrink-0">
-                  ~{compiledAi.estimatedTokens} tokens
+                <span class="text-[11px] font-medium zs-muted tabular-nums shrink-0">
+                  ~{compiledAi.estimatedTokens} tok
                 </span>
               </div>
 
-              {/* Density Selector */}
-              <div class="grid grid-cols-3 zs-segmented text-[12px]">
+              {/* Compact Density Selector */}
+              <div class="grid grid-cols-3 zs-segmented">
                 {(['compact', 'standard', 'forensic'] as PromptDensity[]).map((d) => (
                   <button
                     key={d}
                     type="button"
                     onClick={() => setDensity(d)}
-                    class={`h-8 px-1 truncate zs-segmented-btn zs-pressable capitalize cursor-pointer ${
+                    class={`h-6 px-1 truncate zs-segmented-btn zs-pressable text-[11px] capitalize cursor-pointer ${
                       density === d ? 'zs-segmented-btn-active' : ''
                     }`}
                   >
@@ -1015,19 +936,19 @@ export function SidePanelApp() {
                 ))}
               </div>
 
-              <pre class="zs-subtle-box rounded-[16px] p-4 text-[12px] leading-relaxed font-mono max-h-[220px] overflow-auto whitespace-pre-wrap break-words m-0">
+              <pre class="zs-subtle-box rounded-[8px] p-2.5 text-[11px] leading-[1.45] font-mono max-h-[175px] overflow-auto whitespace-pre-wrap break-words m-0">
                 {compiledAi.prompt}
               </pre>
 
-              {/* Copy Annotated Image Sheet + Copy Prompt Row */}
-              <div class="grid grid-cols-2 gap-2.5">
+              {/* Dual Action Row: Copy Image + Copy Prompt */}
+              <div class="grid grid-cols-2 gap-1.5">
                 <button
                   type="button"
                   disabled={!hasAnyPinImage || exportBusy !== null}
                   onClick={() => void handleCopyCompositeImageSheet()}
-                  class="zs-btn-outline zs-pressable h-10 px-3 gap-1.5 min-w-0 cursor-pointer"
+                  class="zs-btn-outline zs-pressable h-8 px-2.5 gap-1.5 min-w-0 cursor-pointer"
                 >
-                  <ImageIcon size={15} class="shrink-0" />
+                  <ImageIcon size={13} class="shrink-0" />
                   <span class="truncate">
                     {exportBusy === 'sheet' ? t.copySheetBusy : t.copySheetImgBtn}
                   </span>
@@ -1040,10 +961,55 @@ export function SidePanelApp() {
                     await navigator.clipboard.writeText(compiledAi.prompt);
                     notify(t.copiedPromptToast);
                   }}
-                  class="zs-btn-primary zs-pressable h-10 px-3 gap-1.5 min-w-0 cursor-pointer"
+                  class="zs-btn-primary zs-pressable h-8 px-2.5 gap-1.5 min-w-0 cursor-pointer"
                 >
-                  <Check size={15} class="shrink-0" />
+                  <Check size={13} class="shrink-0" />
                   <span class="truncate">{t.copyPromptBtn}</span>
+                </button>
+              </div>
+            </section>
+
+            {/* 3. Export Report Card (.xlsx, .md, .zip) */}
+            <section class="zs-card zs-anim-card p-3 flex flex-col gap-2">
+              <div class="flex items-center justify-between gap-2">
+                <span class="text-[12.5px] font-semibold truncate">
+                  {t.exportFilesTitle} ({filteredPins.length})
+                </span>
+              </div>
+
+              <button
+                type="button"
+                disabled={filteredPins.length === 0 || exportBusy !== null}
+                onClick={() => void handleDownloadExcel()}
+                class="zs-btn-primary zs-pressable h-8 px-3 gap-1.5 w-full cursor-pointer"
+              >
+                <FileSpreadsheet size={13} class="shrink-0" />
+                <span class="truncate">
+                  {exportBusy === 'xlsx' ? t.exportExcelBusy : t.exportExcelBtn}
+                </span>
+              </button>
+
+              <div class="grid grid-cols-2 gap-1.5">
+                <button
+                  type="button"
+                  disabled={filteredPins.length === 0}
+                  onClick={handleDownloadMarkdown}
+                  class="zs-btn-outline zs-pressable h-7.5 px-2.5 gap-1.5 min-w-0 cursor-pointer"
+                >
+                  <FileText size={13} class="shrink-0" />
+                  <span class="truncate">{t.exportMdBtn}</span>
+                </button>
+
+                <button
+                  type="button"
+                  disabled={filteredPins.length === 0 || exportBusy !== null}
+                  onClick={() => void handleDownloadZipBundle()}
+                  class="zs-btn-outline zs-pressable h-7.5 px-2.5 gap-1.5 min-w-0 cursor-pointer"
+                >
+                  <FolderArchive size={13} class="shrink-0" />
+                  <span class="truncate">
+                    {exportBusy === 'zip' ? t.exportZipBusy : t.exportZipBtn}
+                  </span>
                 </button>
               </div>
             </section>
@@ -1052,7 +1018,7 @@ export function SidePanelApp() {
       </main>
 
       {toast && (
-        <div class="fixed bottom-5 left-5 right-5 zs-frosted-hud zs-anim-hud px-4 py-2.5 text-center text-[13px] font-medium truncate">
+        <div class="fixed bottom-3 left-3 right-3 zs-frosted-hud zs-anim-dock px-3 py-1.5 text-center text-[11.5px] font-medium truncate">
           {toast}
         </div>
       )}
