@@ -20,12 +20,12 @@ Các công cụ phản hồi trực quan cho AI Coding Agent như Agentation (`a
 **ZSpect** là một Browser Extension độc lập hoàn toàn (**100% Pure Extension — Zero-CLI**), cài đặt một lần trên trình duyệt và hoạt động tức thì trên **mọi trang web** (`localhost`, `staging`, `production`, hay bất kỳ website nào trên Internet) với 4 giá trị cốt lõi:
 1. **Zero-Install AI Coding Bridge:** Chấm điểm/khoanh vùng giao diện, đọc cây Component gốc (React/Vue/Svelte/Astro) + tọa độ file nguồn, mở thẳng IDE (`cursor://`, `vscode://`) và xuất gói Prompt tối ưu token kèm ảnh chụp đánh dấu.
 2. **Cross-Tab `@ref` UI Vault:** Bắt "UI DNA" (cấu trúc DOM sạch, Design Tokens, Flexbox/Grid, `::before`/`::after`, `@keyframes`/`cubic-bezier`) từ bất kỳ trang web mẫu nào (Linear, Stripe, Apple...) để ghép trực tiếp vào câu lệnh xây dựng giao diện ở tab dự án.
-3. **Forensic Inspection & Diff:** Hộp đen 30 giây tự động ghi lại Console Errors, Failed/Slow API và lịch sử click; đóng băng Tooltip/Dropdown/Animation từng mili-giây (kèm chế độ nâng cao CDP Deep Lock cho `:hover`/`:focus`); phủ ảnh thiết kế Figma hoặc ảnh Before/After để soi lệch pixel.
+3. **Forensic Inspection, Diff & VisBug Interactive Tools:** Hộp đen 30 giây tự động ghi lại Console Errors, Failed/Slow API và lịch sử click; đóng băng Tooltip/Dropdown/Animation từng mili-giây (kèm chế độ nâng cao CDP Deep Lock cho `:hover`/`:focus`); phủ ảnh thiết kế Figma hoặc ảnh Before/After để soi lệch pixel; tích hợp bộ công cụ trực quan kiểu **VisBug** (thước đo khoảng cách Redline Guides, kiểm tra tương phản WCAG A11y, chỉnh nhanh Margin/Padding/Flexbox bằng bàn phím, sửa thử văn bản trực tiếp) kèm bộ ghi **Before → After Diff** chuyển thẳng chỉnh sửa tạm thời thành chỉ dẫn code cho AI.
 4. **Multi-Page Session & Report Exporter (`.md` & `.xlsx`):** Lưu trữ danh sách Bug/Feedback xuyên suốt nhiều trang trong cùng một phiên kiểm thử và xuất ra file `.md` (hoặc `.zip` gồm `.md` + ảnh) cho AI/GitHub, hoặc file `.xlsx` chuyên nghiệp có nhúng ảnh trực tiếp vào ô Excel cho QA/PM/Khách hàng.
 
 ### 1.3. Ranh giới ngoài phạm vi (Non-Goals)
 - **Không** yêu cầu chạy bất kỳ Node.js CLI, daemon nền hay local MCP server nào trên máy người dùng.
-- **Không** xây dựng trình kéo-thả chỉnh sửa CSS trực tiếp kiểu WYSIWYG page-builder.
+- **Không** tự động ghi đè trực tiếp vào file mã nguồn trên ổ cứng (mọi tinh chỉnh trực quan kiểu VisBug trên trình duyệt đều không phá hủy mã gốc, có Undo/Reset đầy đủ và được xuất thành gói Diff `Before → After` chuẩn xác cho Developer/AI Agent).
 - **Không** gửi dữ liệu trang web, ảnh chụp hay log lên bất kỳ máy chủ đám mây nào (100% Local-first trong trình duyệt).
 
 ---
@@ -125,6 +125,7 @@ ZSpect/
 │   │   ├── messaging/                # Định nghĩa giao thức bản tin có kiểu (Typed RPC)
 │   │   ├── dom-cleaner/              # Lọc rác HTML/SVG, tạo CSS selector bền vững
 │   │   ├── style-dna/                # Giải mã CSS variables, layout, keyframes & Tailwind hint
+│   │   ├── visbug-tools/             # Thước đo Redline Guides, WCAG A11y, Tweak & Diff Undo
 │   │   ├── redactor/                 # Ẩn token, cookie, mật khẩu trong log & DOM
 │   │   └── prompt-compiler/          # Biên dịch ngữ cảnh sang Markdown/XML + đếm token
 │   ├── db/
@@ -196,12 +197,29 @@ Khi ZSpect đang bật trên một tab, `Probe` duy trì bộ đệm vòng nhẹ
   - `Split Slider`: Thanh gạt dọc chia đôi màn hình (*Trái: Thiết kế / Before* — *Phải: Trang thực tế*).
 - Người dùng có thể bấm gắn ghim `#1, #2` ngay trong lúc đang bật lớp phủ; ảnh chụp lưu vào Pin sẽ cho phép chọn lưu kèm lớp đối chiếu để AI hoặc Designer nhìn thấy rõ độ lệch.
 
-### 5.7. Biên dịch AI Clipboard & Xuất báo cáo `.md` / `.xlsx`
+### 5.7. Bộ công cụ Trực quan Kiểu VisBug & Engine `Diff-to-Pin`
+Lấy cảm hứng từ [ProjectVisBug](https://github.com/GoogleChromeLabs/ProjectVisBug) nhưng khắc phục triệt để nhược điểm *"F5 là mất hết chỉnh sửa"* của VisBug gốc bằng cách biến mọi thao tác tinh chỉnh trực quan thành gói dữ liệu **Before → After Diff**:
+
+1. **Measurement Guides & Redline Ruler (`Phím G`):**
+   - Chọn một phần tử neo (anchor) rồi rê chuột sang bất kỳ phần tử nào khác để vẽ thước đo khoảng cách chính xác từng pixel (`top`, `right`, `bottom`, `left`), đường gióng thẳng hàng (alignment guides) và kích thước hộp (`W × H`) trực tiếp lên `<canvas>`.
+2. **Accessibility (A11y) & WCAG Contrast X-Ray (`Phím A`):**
+   - Rê chuột kiểm tra tức thì độ tương phản màu chữ/nền thực tế (**WCAG AA / AAA Pass hoặc Fail**, tính toán xuyên qua các lớp nền trong suốt), thuộc tính `role`, `aria-*`, văn bản `alt` của ảnh, `tabindex` và cảnh báo vùng bấm nhỏ hơn `44×44px`. Hỗ trợ bấm 1 nút **"Gắn ghim lỗi A11y"** đính kèm ngay thông số tương phản hiện tại và ngưỡng đạt chuẩn.
+3. **Keyboard Box-Model Tuner — Margin & Padding (`Phím M` / `Phím P`):**
+   - Chọn một hoặc nhiều phần tử (`Shift + Click`), dùng các phím mũi tên (`↑ ↓ ← →`) để tăng khoảng cách (`+1px`, giữ `Shift` nhảy bước `+4px` theo hệ lưới 4px chuẩn `DESIGN.md`, giữ `Alt` để giảm) kèm lớp phủ màu phân biệt trực quan vùng `Margin` và `Padding`.
+4. **Flexbox / Grid Quick-Align & DOM Move (`Phím F` / `Phím V`):**
+   - Đổi nhanh hướng `flex-direction`, căn lề `justify-content`, `align-items`, khoảng cách `gap` trên phần tử cha, hoặc dùng phím mũi tên tráo đổi thứ tự hiển thị giữa các phần tử anh em để thử phương án bố cục ngay trên trang thật.
+5. **Live Text & Typography Edit (`Phím T` / `Double-Click`):**
+   - Nhấp đúp vào văn bản bất kỳ trên trang để viết lại nội dung ngay tại chỗ (kiểm tra tràn khung khi dịch thuật hoặc thử câu CTA mới) và chỉnh thử `font-size`, `font-weight`, `line-height`, `letter-spacing`.
+6. **Mutation Diff Tracker & Undo Stack (`Cmd/Ctrl + Z`):**
+   - Mọi thay đổi ở mục 3, 4, 5 được quản lý trong ngăn xếp `Undo / Redo / Reset` an toàn (không làm hỏng logic JS của trang).
+   - Khi người dùng bấm **"Chốt thành Ghim (#N)"**, ZSpect tự động chụp ảnh trạng thái đã tinh chỉnh đẹp mắt, đồng thời trích xuất bảng đối chiếu `Before → After` (CSS gốc → CSS mới, gợi ý class Tailwind cũ → mới, văn bản gốc → văn bản mới) để nạp thẳng vào AI Prompt và báo cáo `.md` / `.xlsx`.
+
+### 5.8. Biên dịch AI Clipboard & Xuất báo cáo `.md` / `.xlsx`
 
 #### A. AI Prompt Compiler & Dual-Copy
 - Hiển thị **Ước tính Token** theo thời gian thực (`~Tokens = Math.ceil(charCount / 3.8)`) với 3 mức độ chi tiết:
-  - `Compact`: Chỉ gồm ghi chú, đường dẫn Component/Selector và thay đổi mong muốn (~150–300 tokens/ghim).
-  - `Standard` (Mặc định): Gồm thông tin Component/Selector, Computed Styles trọng yếu, mẫu `@ref` đính kèm (nếu có) và lỗi Console/API liên quan (~400–800 tokens/ghim).
+  - `Compact`: Chỉ gồm ghi chú, đường dẫn Component/Selector, bảng `Before → After Diff` (nếu có tinh chỉnh VisBug) và thay đổi mong muốn (~150–300 tokens/ghim).
+  - `Standard` (Mặc định): Gồm thông tin Component/Selector, Computed Styles trọng yếu, bảng `Before → After Diff` / chỉ số `A11y` (nếu có), mẫu `@ref` đính kèm và lỗi Console/API liên quan (~400–800 tokens/ghim).
   - `Forensic`: Bổ sung đầy đủ `cleanHtml`, chuỗi Breadcrumbs và chi tiết response lỗi.
 - **Nút Copy thông minh:** Cho phép *Copy Prompt (Markdown)*, *Copy Annotated Image (PNG có đánh số `#1, #2`)* hoặc *Copy Cả Hai* vào Clipboard để dán thẳng vào cửa sổ chat của Claude Code, Cursor, Antigravity.
 
@@ -214,11 +232,11 @@ File `<session-slug>-qa-report.xlsx` gồm 2 trang tính được định dạng
 
 1. **Sheet 1 — `Feedback & Bug List` (Dành cho PM, QA, Developer, Khách hàng):**
    - `Mã` (`#1`, `#2`...)
-   - `Phân loại` (`Bug`, `UI Polish`, `Copy/Text`, `Design Diff`)
+   - `Phân loại` (`Bug`, `UI Polish`, `Copy/Text`, `Design Diff`, `A11y`, `Visual Tweak`)
    - `Mức độ` (`Critical`, `High`, `Medium`, `Low` — các mức `Critical`/`High` tô chữ `#b64400` đậm)
    - `Trang & Màn hình` (URL đầy đủ + kích thước viewport `WxH`)
    - `Vị trí / Component` (Tên Component + `file:line` hoặc CSS Selector gọn)
-   - `Nội dung Feedback / Mô tả lỗi` (Ghi chú của người kiểm thử + tham chiếu `@ref` nếu có)
+   - `Nội dung Feedback / Mô tả lỗi` (Ghi chú của người kiểm thử + bảng `Before → After Diff` / điểm `WCAG Contrast` + tham chiếu `@ref` nếu có)
    - `Các bước tái hiện` (Tự động điền từ User Breadcrumbs, cho phép chỉnh sửa trước khi xuất)
    - `Tóm tắt lỗi Console / API` (Số lỗi Console + mã lỗi HTTP thất bại)
    - `Ảnh minh họa` (**Nhúng trực tiếp ảnh PNG vùng lỗi đã khoanh vùng & đánh số vào đúng ô Excel** qua `ExcelJS` image anchor)
@@ -231,9 +249,29 @@ File `<session-slug>-qa-report.xlsx` gồm 2 trang tính được định dạng
 ## 6. Mô hình Dữ liệu (`IndexedDB` Schema)
 
 ```typescript
-export type PinType = 'bug' | 'ui-polish' | 'copy' | 'design-diff';
+export type PinType = 'bug' | 'ui-polish' | 'copy' | 'design-diff' | 'a11y' | 'visual-tweak';
 export type PinSeverity = 'critical' | 'high' | 'medium' | 'low';
 export type PinStatus = 'open' | 'in-progress' | 'resolved';
+
+export interface VisualTweakDiff {
+  styleChanges: Array<{ property: string; before: string; after: string }>;
+  tailwindBefore?: string;
+  tailwindAfter?: string;
+  textChange?: { before: string; after: string };
+  domMoved?: { fromIndex: number; toIndex: number };
+}
+
+export interface A11yAuditSnapshot {
+  contrastRatio: number;
+  wcagAA: boolean;
+  wcagAAA: boolean;
+  foregroundColor: string;
+  effectiveBackgroundColor: string;
+  role?: string;
+  accessibleName?: string;
+  touchTargetPass: boolean;   // >= 44x44px cho phần tử tương tác
+  issues: string[];
+}
 
 export interface SessionRecord {
   id: string;                 // UUID
@@ -286,6 +324,8 @@ export interface PinRecord {
   computedStyles: Record<string, string>;
   tailwindHint?: string;
   frameworkMeta: FrameworkMeta;
+  visualDiff?: VisualTweakDiff;
+  a11yAudit?: A11yAuditSnapshot;
   flightCapsule?: FlightCapsule;
   attachedRefIds: string[];   // Danh sách ID từ bảng references (@ref)
   croppedImageBlob?: Blob;    // Ảnh vùng lỗi đã vẽ khung & số thứ tự
@@ -327,7 +367,7 @@ export interface ReferenceDNA {
 1. **Unit Tests (`Vitest` + `happy-dom`):**
    - Kiểm thử `dom-cleaner` (cắt gọn SVG dài, loại bỏ thuộc tính rác, sinh selector duy nhất).
    - Kiểm thử `redactor` (đảm bảo 100% `Bearer token`, `Cookie`, `api_key`, `password` bị thay bằng `[REDACTED]`).
-   - Kiểm thử `style-dna` & `prompt-compiler` (độ chính xác ước tính token, nhúng `@ref` đúng cấu trúc).
+   - Kiểm thử `style-dna`, `visbug-tools` (tính toán độ tương phản WCAG xuyên lớp nền trong suốt, đo khoảng cách Redline Guides, ngăn xếp Undo/Redo & xuất `Before → After Diff`) và `prompt-compiler` (độ chính xác ước tính token, nhúng `@ref` đúng cấu trúc).
    - Kiểm thử `markdown-exporter` và `excel-exporter` (đọc ngược buffer `.xlsx` bằng `ExcelJS` để xác nhận đủ 2 sheets, đúng cột, đúng dòng và có ảnh đính kèm).
 2. **End-to-End Tests (`Playwright` Chromium Persistent Context với Extension đã build):**
    - Kịch bản 1: Mở trang mẫu React/HTML, kích hoạt HUD, chọn phần tử, tạo ghim `#1`, kiểm tra dữ liệu & ảnh crop được lưu vào `IndexedDB`.
