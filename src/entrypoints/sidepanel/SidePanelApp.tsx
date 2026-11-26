@@ -910,6 +910,30 @@ export function SidePanelApp() {
                     <option value="windsurf">Windsurf</option>
                   </select>
                 </div>
+
+                {/* Theme & Language Preferences inside Side Panel Settings */}
+                <div class="flex items-center justify-between gap-2.5 pt-1 border-t border-[var(--zs-border)]">
+                  <span class="text-[13px] zs-muted">
+                    {locale === 'vi' ? 'Giao diện & Ngôn ngữ:' : 'Theme & Language:'}
+                  </span>
+                  <div class="flex items-center gap-2 shrink-0">
+                    <button
+                      type="button"
+                      onClick={toggleTheme}
+                      class="zs-btn-outline zs-pressable h-8 px-3 gap-1.5 text-[12px] cursor-pointer"
+                    >
+                      {theme === 'light' ? <Moon size={13} /> : <Sun size={13} />}
+                      <span>{theme === 'light' ? 'Dark' : 'Light'}</span>
+                    </button>
+                    <button
+                      type="button"
+                      onClick={toggleLocale}
+                      class="zs-btn-outline zs-pressable h-8 px-3 text-[12px] font-semibold uppercase cursor-pointer"
+                    >
+                      {locale === 'en' ? 'EN → VI' : 'VI → EN'}
+                    </button>
+                  </div>
+                </div>
               </section>
             )}
 

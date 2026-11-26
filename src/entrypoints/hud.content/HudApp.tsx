@@ -11,7 +11,6 @@ import {
   Image as ImageIcon,
   Layers,
   LayoutGrid,
-  Moon,
   Move,
   PanelRightOpen,
   Pause,
@@ -20,7 +19,6 @@ import {
   Ruler,
   Scan,
   Snowflake,
-  Sun,
   Type as TypeIcon,
   Undo2,
   X,
@@ -134,8 +132,8 @@ async function dataUrlToPngBlob(dataUrl: string): Promise<Blob> {
 }
 
 export function HudApp() {
-  const { theme, toggleTheme } = useZSpectTheme();
-  const { locale, t, toggleLocale } = useZSpectI18n();
+  const { theme } = useZSpectTheme();
+  const { t } = useZSpectI18n();
   const probe = useMemo(() => new MainWorldProbeClient(), []);
   const tweakEngine = useMemo(() => new VisBugTweakEngine(), []);
 
@@ -951,25 +949,25 @@ export function HudApp() {
     return { left, top, width };
   })();
 
-  // Compute Sub-Bar anchor relative to Dock position
+  // Compute Sub-Bar anchor relative to Slim 38px Dock position
   const subBarStyle = (() => {
     if (!dockPos) {
       return {
         position: 'fixed' as const,
         left: '50%',
-        bottom: '84px',
+        bottom: '58px',
         transform: 'translateX(-50%)',
       };
     }
     const dockEl = dockRef.current;
-    const dockW = dockEl ? dockEl.offsetWidth : 560;
-    const dockH = dockEl ? dockEl.offsetHeight : 54;
-    const centerLeft = Math.max(16, Math.min(window.innerWidth - 320, dockPos.x + dockW / 2));
-    const placeBelow = dockPos.y < 90;
+    const dockW = dockEl ? dockEl.offsetWidth : 420;
+    const dockH = dockEl ? dockEl.offsetHeight : 38;
+    const centerLeft = Math.max(16, Math.min(window.innerWidth - 260, dockPos.x + dockW / 2));
+    const placeBelow = dockPos.y < 64;
     return {
       position: 'fixed' as const,
       left: `${centerLeft}px`,
-      top: placeBelow ? `${dockPos.y + dockH + 10}px` : `${dockPos.y - 54}px`,
+      top: placeBelow ? `${dockPos.y + dockH + 6}px` : `${dockPos.y - 40}px`,
       transform: 'translateX(-50%)',
     };
   })();
@@ -1254,38 +1252,29 @@ export function HudApp() {
         ) : null,
       )}
 
-      {/* 8. Contextual Sub-Bar (Anchored cleanly to Dock position) */}
+      {/* 8. Slim Contextual Sub-Bar (34px height) */}
       {(mode === 'spacing' || mode === 'flexbox' || mode === 'freeze' || mode === 'diff') && (
         <div
           style={subBarStyle}
-          class="max-w-[calc(100vw-24px)] overflow-x-auto zs-no-scrollbar whitespace-nowrap zs-frosted-hud px-4 py-2 flex items-center gap-2.5 pointer-events-auto text-[13px]"
+          class="max-w-[calc(100vw-20px)] overflow-x-auto zs-no-scrollbar whitespace-nowrap zs-hud-subbar zs-anim-dock pointer-events-auto"
         >
           {mode === 'spacing' && (
             <>
-              <span class="font-semibold shrink-0">Spacing:</span>
               <button
                 type="button"
                 onClick={() => setSpacingTarget('padding')}
-                class={`h-8 px-3.5 font-medium shrink-0 cursor-pointer zs-pressable ${
-                  spacingTarget === 'padding'
-                    ? 'zs-icon-btn-active rounded-full'
-                    : 'zs-icon-btn zs-muted'
-                }`}
+                class={`zs-subbar-pill ${spacingTarget === 'padding' ? 'zs-subbar-pill-active' : ''}`}
               >
                 Padding (P)
               </button>
               <button
                 type="button"
                 onClick={() => setSpacingTarget('margin')}
-                class={`h-8 px-3.5 font-medium shrink-0 cursor-pointer zs-pressable ${
-                  spacingTarget === 'margin'
-                    ? 'zs-icon-btn-active rounded-full'
-                    : 'zs-icon-btn zs-muted'
-                }`}
+                class={`zs-subbar-pill ${spacingTarget === 'margin' ? 'zs-subbar-pill-active' : ''}`}
               >
                 Margin (M)
               </button>
-              <span class="zs-muted text-[12px] shrink-0">{t.spacingHint}</span>
+              <span class="zs-muted text-[11px] shrink-0">↑↓←→ (Shift +4 · Alt -)</span>
               {primarySelectedEl && currentDiff && (
                 <button
                   type="button"
@@ -1296,7 +1285,8 @@ export function HudApp() {
                       'visual-tweak',
                     )
                   }
-                  class="zs-btn-primary zs-pressable h-8 px-4 shrink-0 cursor-pointer"
+                  style={{ height: '24px', padding: '0 10px', fontSize: '11.5px' }}
+                  class="zs-btn-primary zs-pressable shrink-0 cursor-pointer"
                 >
                   {t.pinDiffBtn}
                 </button>
@@ -1306,7 +1296,6 @@ export function HudApp() {
 
           {mode === 'flexbox' && (
             <>
-              <span class="font-semibold shrink-0">Flex:</span>
               {(['row', 'column'] as const).map((dir) => (
                 <button
                   key={dir}
@@ -1317,7 +1306,7 @@ export function HudApp() {
                       setTweakVersion((v) => v + 1);
                     }
                   }}
-                  class="zs-btn-outline zs-pressable h-8 px-3 shrink-0 cursor-pointer"
+                  class="zs-subbar-pill"
                 >
                   {dir}
                 </button>
@@ -1332,12 +1321,12 @@ export function HudApp() {
                       setTweakVersion((v) => v + 1);
                     }
                   }}
-                  class="zs-btn-outline zs-pressable h-8 px-3 shrink-0 cursor-pointer"
+                  class="zs-subbar-pill"
                 >
                   {jc.replace('flex-', '')}
                 </button>
               ))}
-              <span class="zs-muted text-[12px] shrink-0">{t.flexMoveHint}</span>
+              <span class="zs-muted text-[11px] shrink-0">{t.flexMoveHint}</span>
               {primarySelectedEl && currentDiff && (
                 <button
                   type="button"
@@ -1348,7 +1337,8 @@ export function HudApp() {
                       'visual-tweak',
                     )
                   }
-                  class="zs-btn-primary zs-pressable h-8 px-4 shrink-0 cursor-pointer"
+                  style={{ height: '24px', padding: '0 10px', fontSize: '11.5px' }}
+                  class="zs-btn-primary zs-pressable shrink-0 cursor-pointer"
                 >
                   {t.pinDiffBtn}
                 </button>
@@ -1361,34 +1351,31 @@ export function HudApp() {
               <button
                 type="button"
                 onClick={() => setDomFrozen((f) => !f)}
-                class={`h-8 px-3.5 rounded-full flex items-center gap-1.5 font-medium shrink-0 cursor-pointer zs-pressable ${
-                  domFrozen ? 'zs-icon-btn-active' : 'zs-btn-outline'
-                }`}
+                class={`zs-subbar-pill ${domFrozen ? 'zs-subbar-pill-active' : ''}`}
               >
-                {domFrozen ? <Pause size={13} /> : <Play size={13} />}
+                {domFrozen ? <Pause size={11} /> : <Play size={11} />}
                 <span>{domFrozen ? t.domLocked : t.lockTooltip}</span>
               </button>
 
-              <div class="h-5 w-[1px] zs-divider shrink-0" />
+              <div class="h-3.5 w-[1px] zs-divider shrink-0" />
 
-              <span class="zs-muted text-[12px] shrink-0">CDP:</span>
               {(['hover', 'focus', 'active'] as CdpPseudoState[]).map((st) => (
                 <button
                   key={st}
                   type="button"
                   onClick={() => void handleToggleCdpPseudo(st)}
-                  class={`h-8 px-3 rounded-full shrink-0 cursor-pointer zs-pressable ${
-                    cdpStates.includes(st) ? 'bg-[#0071e3] text-white font-medium' : 'zs-btn-outline'
+                  class={`zs-subbar-pill ${
+                    cdpStates.includes(st) ? '!bg-[#0071e3] !text-white !border-transparent' : ''
                   }`}
                 >
                   :{st}
                 </button>
               ))}
 
-              <div class="h-5 w-[1px] zs-divider shrink-0" />
+              <div class="h-3.5 w-[1px] zs-divider shrink-0" />
 
-              <span class="zs-muted text-[12px] shrink-0">
-                {t.motionLabel} ({animations.length}):
+              <span class="zs-muted text-[11px] shrink-0">
+                {t.motionLabel} ({animations.length})
               </span>
               <input
                 type="range"
@@ -1403,13 +1390,14 @@ export function HudApp() {
                     : undefined;
                   void probe.scrubAnimations(val / 100, true, sel).then(setAnimations);
                 }}
-                class="w-24 accent-[#0071e3] shrink-0 cursor-pointer"
+                style={{ width: '72px', height: '4px' }}
+                class="accent-[#0071e3] shrink-0 cursor-pointer"
               />
-              <span class="w-9 text-right tabular-nums text-[12px] shrink-0">{scrubProgress}%</span>
+              <span class="w-7 text-right tabular-nums text-[11px] shrink-0">{scrubProgress}%</span>
               <button
                 type="button"
                 onClick={() => void probe.resumeAnimations()}
-                class="zs-link px-1 shrink-0 cursor-pointer"
+                class="zs-link text-[11px] px-0.5 shrink-0 cursor-pointer"
               >
                 Play
               </button>
@@ -1421,14 +1409,14 @@ export function HudApp() {
               <button
                 type="button"
                 onClick={() => void handleCaptureBeforeSnapshot()}
-                class="zs-btn-outline zs-pressable h-8 px-3.5 shrink-0 cursor-pointer"
+                class="zs-subbar-pill"
               >
                 {t.captureBeforeBtn}
               </button>
               <button
                 type="button"
                 onClick={() => fileInputRef.current?.click()}
-                class="zs-btn-outline zs-pressable h-8 px-3.5 shrink-0 cursor-pointer"
+                class="zs-subbar-pill"
               >
                 {t.uploadFigmaBtn}
               </button>
@@ -1447,7 +1435,7 @@ export function HudApp() {
                   <button
                     type="button"
                     onClick={() => setOverlayMode(overlayMode === 'onion' ? 'split' : 'onion')}
-                    class="zs-btn-outline zs-pressable h-8 px-3.5 shrink-0 cursor-pointer"
+                    class="zs-subbar-pill"
                   >
                     {overlayMode === 'onion' ? 'Onion-Skin' : 'Split Wipe'}
                   </button>
@@ -1458,20 +1446,21 @@ export function HudApp() {
                       max={100}
                       value={overlayOpacity}
                       onInput={(e) => setOverlayOpacity(Number((e.target as HTMLInputElement).value))}
-                      class="w-24 accent-[#0071e3] shrink-0"
+                      style={{ width: '68px', height: '4px' }}
+                      class="accent-[#0071e3] shrink-0"
                     />
                   )}
                   <button
                     type="button"
                     onClick={() => setOverlayImgUrl(null)}
-                    class="zs-link px-1 shrink-0 cursor-pointer"
+                    class="zs-link text-[11px] px-0.5 shrink-0 cursor-pointer"
                   >
                     {t.clearOverlayBtn}
                   </button>
                 </>
               )}
               {!overlayImgUrl && (
-                <span class="zs-muted text-[12px] shrink-0">{t.pasteMockupHint}</span>
+                <span class="zs-muted text-[11px] shrink-0">{t.pasteMockupHint}</span>
               )}
             </>
           )}
@@ -1710,7 +1699,7 @@ export function HudApp() {
         </div>
       )}
 
-      {/* 12. Main Draggable Floating Dock */}
+      {/* 12. Main Draggable Compact Floating Dock (38px height) */}
       <div
         ref={dockRef}
         style={
@@ -1723,24 +1712,24 @@ export function HudApp() {
             : {
                 position: 'fixed',
                 left: '50%',
-                bottom: '20px',
+                bottom: '14px',
                 transform: 'translateX(-50%)',
               }
         }
         class="max-w-[calc(100vw-16px)] whitespace-nowrap pointer-events-auto"
       >
         <div class="zs-hud-dock zs-anim-dock max-w-full overflow-x-auto zs-no-scrollbar">
-          {/* Draggable Brand & Grip Handle */}
+          {/* Compact Draggable Grip + Logo Icon */}
           <div
             onMouseDown={handleStartDockDrag}
             onDblClick={() => setDockPos(null)}
-            onMouseEnter={(e) => showHoverTooltip(e, t.dragHudHint)}
+            onMouseEnter={(e) => showHoverTooltip(e, `ZSpect · ${t.dragHudHint}`)}
             onMouseLeave={hideHoverTooltip}
-            class="flex items-center gap-1.5 pl-1 pr-2.5 cursor-grab active:cursor-grabbing shrink-0"
+            class="flex items-center gap-1 pl-0.5 pr-2 cursor-grab active:cursor-grabbing shrink-0"
             style={{ borderRight: '1px solid var(--zs-border-strong)' }}
           >
-            <GripVertical size={15} class="zs-muted shrink-0" />
-            <svg viewBox="0 0 512 512" style={{ width: '24px', height: '24px' }} class="shrink-0" fill="none">
+            <GripVertical size={13} class="zs-muted shrink-0" />
+            <svg viewBox="0 0 512 512" style={{ width: '20px', height: '20px' }} class="shrink-0" fill="none">
               <rect
                 x="16"
                 y="16"
@@ -1749,7 +1738,7 @@ export function HudApp() {
                 rx="120"
                 fill="#1d1d1f"
                 stroke="#545458"
-                stroke-width="12"
+                stroke-width="14"
               />
               <path fill="#ffffff" d="M124 128H286V166H162V248H124V128Z" />
               <path fill="#ffffff" d="M124 290H162V346H214V384H124V290Z" />
@@ -1757,7 +1746,6 @@ export function HudApp() {
               <line x1="178" y1="330" x2="314" y2="194" stroke="#ffffff" stroke-width="40" />
               <circle cx="358" cy="158" r="34" fill="#0071e3" />
             </svg>
-            <span class="text-[13px] font-semibold tracking-[-0.2px] pl-0.5">ZSpect</span>
           </div>
 
           {/* Cluster 1: Inspect, Area, Redlines, A11y */}
@@ -1777,11 +1765,13 @@ export function HudApp() {
                   }}
                   class={`zs-hud-btn ${active ? 'zs-hud-btn-active' : ''}`}
                 >
-                  <Icon size={17} strokeWidth={1.9} />
+                  <Icon size={15} strokeWidth={1.9} />
                 </button>
               );
             })}
           </div>
+
+          <div class="h-4 w-[1px] zs-divider shrink-0" />
 
           {/* Cluster 2: VisBug Tweaks, Freeze & Overlay Diff */}
           <div class="zs-tool-cluster shrink-0">
@@ -1800,7 +1790,7 @@ export function HudApp() {
                   }}
                   class={`zs-hud-btn ${active ? 'zs-hud-btn-active' : ''}`}
                 >
-                  <Icon size={17} strokeWidth={1.9} />
+                  <Icon size={15} strokeWidth={1.9} />
                 </button>
               );
             })}
@@ -1808,40 +1798,43 @@ export function HudApp() {
 
           {/* Undo / Reset Controls (when VisBug tweaks exist) */}
           {tweakEngine.canUndo() && (
-            <div class="zs-tool-cluster shrink-0">
-              <button
-                type="button"
-                aria-label={t.undoTooltip}
-                onMouseEnter={(e) => showHoverTooltip(e, t.undoTooltip, '⌘Z')}
-                onMouseLeave={hideHoverTooltip}
-                onClick={() => {
-                  tweakEngine.undo();
-                  setTweakVersion((v) => v + 1);
-                }}
-                class="zs-hud-btn"
-              >
-                <Undo2 size={16} />
-              </button>
-              <button
-                type="button"
-                aria-label={t.resetTooltip}
-                onMouseEnter={(e) => showHoverTooltip(e, t.resetTooltip)}
-                onMouseLeave={hideHoverTooltip}
-                onClick={() => {
-                  tweakEngine.resetAll();
-                  setTweakVersion((v) => v + 1);
-                  showToast(t.toastResetTweaks);
-                }}
-                class="zs-hud-btn"
-              >
-                <RotateCcw size={16} />
-              </button>
-            </div>
+            <>
+              <div class="h-4 w-[1px] zs-divider shrink-0" />
+              <div class="zs-tool-cluster shrink-0">
+                <button
+                  type="button"
+                  aria-label={t.undoTooltip}
+                  onMouseEnter={(e) => showHoverTooltip(e, t.undoTooltip, '⌘Z')}
+                  onMouseLeave={hideHoverTooltip}
+                  onClick={() => {
+                    tweakEngine.undo();
+                    setTweakVersion((v) => v + 1);
+                  }}
+                  class="zs-hud-btn"
+                >
+                  <Undo2 size={14} />
+                </button>
+                <button
+                  type="button"
+                  aria-label={t.resetTooltip}
+                  onMouseEnter={(e) => showHoverTooltip(e, t.resetTooltip)}
+                  onMouseLeave={hideHoverTooltip}
+                  onClick={() => {
+                    tweakEngine.resetAll();
+                    setTweakVersion((v) => v + 1);
+                    showToast(t.toastResetTweaks);
+                  }}
+                  class="zs-hud-btn"
+                >
+                  <RotateCcw size={14} />
+                </button>
+              </div>
+            </>
           )}
 
-          {/* Workspace CTA + Quick Settings */}
+          {/* Compact Workspace CTA + Close (Theme & Language live in Side Panel) */}
           <div
-            class="flex items-center gap-1.5 pl-2 shrink-0"
+            class="flex items-center gap-1 pl-1.5 shrink-0"
             style={{ borderLeft: '1px solid var(--zs-border-strong)' }}
           >
             <button
@@ -1853,37 +1846,11 @@ export function HudApp() {
                   .sendMessage({ type: 'ZSPECT_OPEN_SIDEPANEL' } satisfies ZSpectRuntimeMessage)
                   .catch(() => {});
               }}
-              style={{ height: '36px', padding: '0 15px', gap: '7px' }}
+              style={{ height: '28px', padding: '0 10px', gap: '5px', fontSize: '12px' }}
               class="zs-btn-primary zs-pressable shrink-0 whitespace-nowrap cursor-pointer"
             >
-              <PanelRightOpen size={15} />
-              <span>
-                {t.tabPins} ({totalPinsCount})
-              </span>
-            </button>
-
-            <button
-              type="button"
-              onMouseEnter={(e) => showHoverTooltip(e, t.switchLangTooltip)}
-              onMouseLeave={hideHoverTooltip}
-              onClick={toggleLocale}
-              style={{ width: '36px', height: '36px' }}
-              class="zs-hud-btn zs-muted text-[11px] font-semibold uppercase tracking-wide"
-            >
-              {locale}
-            </button>
-
-            <button
-              type="button"
-              aria-label="Toggle Light/Dark Theme"
-              onMouseEnter={(e) =>
-                showHoverTooltip(e, theme === 'light' ? t.toggleDarkTooltip : t.toggleLightTooltip)
-              }
-              onMouseLeave={hideHoverTooltip}
-              onClick={toggleTheme}
-              class="zs-hud-btn zs-muted"
-            >
-              {theme === 'light' ? <Moon size={16} /> : <Sun size={16} />}
+              <PanelRightOpen size={13} />
+              <span>{totalPinsCount}</span>
             </button>
 
             <button
@@ -1894,9 +1861,10 @@ export function HudApp() {
               onClick={() => {
                 hudVisible.value = false;
               }}
+              style={{ width: '28px', height: '28px' }}
               class="zs-hud-btn zs-muted"
             >
-              <X size={16} />
+              <X size={14} />
             </button>
           </div>
         </div>

@@ -142,12 +142,13 @@ body {
   border-bottom: 1px solid var(--zs-border);
 }
 
-/* Floating HUD Dock — Explicit px geometry immune to host CSS */
+/* Floating HUD Dock — Slim Compact 38px Geometry */
 .zs-hud-dock {
   display: inline-flex;
   align-items: center;
-  gap: 8px;
-  padding: 7px 10px;
+  height: 38px;
+  gap: 4px;
+  padding: 4px 6px;
   background-color: var(--zs-bg-hud);
   color: var(--zs-text);
   backdrop-filter: blur(24px) saturate(190%);
@@ -157,21 +158,67 @@ body {
   box-shadow: var(--zs-hud-shadow);
 }
 
+.zs-hud-subbar {
+  display: inline-flex;
+  align-items: center;
+  height: 34px;
+  gap: 6px;
+  padding: 4px 10px;
+  background-color: var(--zs-bg-hud);
+  color: var(--zs-text);
+  backdrop-filter: blur(24px) saturate(190%);
+  -webkit-backdrop-filter: blur(24px) saturate(190%);
+  border: 1px solid var(--zs-border-strong);
+  border-radius: 9999px;
+  box-shadow: var(--zs-hud-shadow);
+  font-size: 11.5px;
+}
+
+.zs-subbar-pill {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  height: 24px;
+  padding: 0 9px;
+  gap: 4px;
+  border-radius: 9999px;
+  font-size: 11.5px;
+  font-weight: 500;
+  border: 1px solid var(--zs-input-border);
+  background-color: var(--zs-bg-card);
+  color: var(--zs-text);
+  cursor: pointer;
+  white-space: nowrap;
+  flex-shrink: 0;
+  transition: background-color 140ms ease, border-color 140ms ease, transform 100ms ease;
+}
+
+.zs-subbar-pill:hover {
+  background-color: var(--zs-hover-surface);
+}
+
+.zs-subbar-pill:active {
+  transform: scale(0.95);
+}
+
+.zs-subbar-pill-active {
+  background-color: var(--zs-active-pill-bg) !important;
+  color: var(--zs-active-pill-fg) !important;
+  border-color: transparent !important;
+}
+
 .zs-tool-cluster {
   display: inline-flex;
   align-items: center;
-  gap: 3px;
-  padding: 3px;
-  background-color: var(--zs-bg-cluster);
-  border-radius: 9999px;
+  gap: 2px;
 }
 
 .zs-hud-btn {
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  width: 36px;
-  height: 36px;
+  width: 30px;
+  height: 30px;
   padding: 0;
   border: none;
   border-radius: 9999px;
@@ -196,7 +243,7 @@ body {
 .zs-hud-btn-active {
   background-color: var(--zs-active-pill-bg) !important;
   color: var(--zs-active-pill-fg) !important;
-  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.14);
+  box-shadow: 0 1px 4px rgba(0, 0, 0, 0.14);
 }
 
 /* Instant Floating Custom Tooltip */
