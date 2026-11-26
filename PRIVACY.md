@@ -1,22 +1,23 @@
 # Privacy Policy for ZSpect
 
-**Last Updated:** November 26, 2026  
-**Developer:** Zane (`@zane-tv` · [zanedev.pro](https://zanedev.pro))  
-**Contact:** [tientv.63.work@gmail.com](mailto:tientv.63.work@gmail.com)
+**Effective Date:** November 26, 2026  
+**Developer:** Zane ([@zane-tv](https://github.com/zane-tv))  
+**Contact:** [tientv.63.work@gmail.com](mailto:tientv.63.work@gmail.com)  
+**Web Version:** [https://zane-tv.github.io/zspect/privacy](https://zane-tv.github.io/zspect/privacy)
 
 ## 1. Overview
 
 **ZSpect** ("the Extension") is a client-side developer and QA browser extension for inspecting user interfaces, auditing accessibility contrast, saving UI design references, and exporting bug/feedback reports.
 
-ZSpect is designed with a strict **100% local-first, zero-telemetry architecture**. We do **not** collect, transmit, store on external servers, sell, or share any personal data, browsing history, or website content.
+ZSpect operates on a strict **100% local-first, zero-telemetry architecture**. We do **not** collect, transmit, store on external servers, sell, or share any personal data, browsing history, or website content.
 
-## 2. Data Collection & Storage
+## 2. Data Collection & Local Storage
 
-- **No External Data Transmission:** ZSpect makes zero network requests to any developer-owned, analytics, or third-party server.
+- **No External Transmission:** ZSpect makes zero network requests to any developer-owned, analytics, advertising, or third-party server.
 - **Local-Only Storage:**
   - User interface preferences (`theme`, `locale`, and active session ID) are stored locally in your browser via `chrome.storage.local`.
   - Captured pins, annotated element screenshots, DOM/CSS metadata, and `@ref` UI blueprints created by you are stored exclusively inside your local browser's `IndexedDB` (`ZSpectDB`).
-- **User-Controlled Exports:** Data leaves your browser only when you explicitly copy a prompt/image to your clipboard or download an export file (`.xlsx`, `.zip`, or `.md`) to your own device.
+- **User-Initiated Exports:** Data leaves your browser only when you explicitly copy a prompt/image to your clipboard or download an export file (`.xlsx`, `.zip`, or `.md`) to your own device.
 
 ## 3. Automatic Secret Redaction
 
@@ -32,6 +33,6 @@ When capturing page diagnostics (such as failed API calls or DOM snippets) durin
 - **`storage`:** Saves your theme and language settings locally.
 - **`debugger` (Optional):** Requested at runtime only if you explicitly toggle the `:hover` / `:focus` / `:active` pseudo-class lock inside the Freeze tool.
 
-## 5. Changes & Contact
+## 5. Contact
 
-Any updates to this Privacy Policy will be published in the official repository at [https://github.com/zane-tv/zspect](https://github.com/zane-tv/zspect). For questions, contact **Zane** at [tientv.63.work@gmail.com](mailto:tientv.63.work@gmail.com).
+Updates to this Privacy Policy will be published at [https://zane-tv.github.io/zspect/privacy](https://zane-tv.github.io/zspect/privacy) and in the official repository at [https://github.com/zane-tv/zspect](https://github.com/zane-tv/zspect). For questions, contact **Zane** at [tientv.63.work@gmail.com](mailto:tientv.63.work@gmail.com).
