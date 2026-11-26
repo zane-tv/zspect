@@ -227,10 +227,17 @@ export function HudApp() {
     if (isDraggingDock) return;
     const btnRect = (e.currentTarget as HTMLElement).getBoundingClientRect();
     const placeBelow = btnRect.top < 72;
+    const halfEstWidth = Math.min(
+      Math.floor(window.innerWidth / 2) - 12,
+      Math.max(84, Math.ceil(label.length * 3.7 + (shortcut ? 34 : 16))),
+    );
     setTooltip({
       label,
       shortcut,
-      x: Math.min(window.innerWidth - 80, Math.max(80, btnRect.left + btnRect.width / 2)),
+      x: Math.min(
+        window.innerWidth - halfEstWidth - 12,
+        Math.max(halfEstWidth + 12, Math.round(btnRect.left + btnRect.width / 2)),
+      ),
       y: placeBelow ? btnRect.bottom + 10 : btnRect.top - 38,
       placement: placeBelow ? 'bottom' : 'top',
     });
