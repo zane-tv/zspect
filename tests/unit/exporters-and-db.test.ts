@@ -111,7 +111,7 @@ describe('ZSpect IndexedDB + Markdown (.md / .zip) + Excel (.xlsx) Exporters', (
     expect(unzipped['references/ref-stripe-pay-card.png']).toBeDefined();
     expect(strFromU8(unzipped['report.md']!)).toContain('screenshots/pin-01.png');
 
-    // 3. Verify Excel (.xlsx) 2-sheet report with embedded image
+    // 3. Verify Excel (.xlsx) 2-sheet report with embedded image (Default English + Vietnamese)
     const xlsxBlob = await exportExcelReport({
       session,
       pins: storedPins,
@@ -127,11 +127,21 @@ describe('ZSpect IndexedDB + Markdown (.md / .zip) + Excel (.xlsx) Exporters', (
     expect(sheet1).toBeDefined();
     expect(sheet2).toBeDefined();
 
-    expect(sheet1!.getRow(1).getCell(1).value).toBe('Mã');
+    expect(sheet1!.getRow(1).getCell(1).value).toBe('ID');
     expect(sheet1!.getRow(2).getCell(1).value).toBe('#1');
     expect(sheet1!.getRow(2).getCell(3).value).toBe('CRITICAL');
     expect(String(sheet1!.getRow(2).getCell(7).value)).toContain('Nút thanh toán trả lỗi 500');
     expect(String(sheet1!.getRow(2).getCell(9).value)).toContain('POST https://staging.shop.local/api/orders');
     expect(sheet1!.getImages().length).toBe(1);
+
+    const xlsxViBlob = await exportExcelReport({
+      session,
+      pins: storedPins,
+      references: storedRefs,
+      locale: 'vi',
+    });
+    const wbVi = new ExcelJS.Workbook();
+    await wbVi.xlsx.load(await xlsxViBlob.arrayBuffer());
+    expect(wbVi.getWorksheet('Feedback & Bug List')!.getRow(1).getCell(1).value).toBe('Mã');
   });
 });

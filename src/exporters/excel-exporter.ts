@@ -72,8 +72,10 @@ export async function exportExcelReport(options: {
   session: SessionRecord;
   pins: PinRecord[];
   references?: ReferenceDNA[];
+  locale?: 'en' | 'vi';
 }): Promise<Blob> {
-  const { session, pins, references = [] } = options;
+  const { session, pins, references = [], locale = 'en' } = options;
+  const isVi = locale === 'vi';
   const refMap = new Map(references.map((r) => [r.id, r]));
 
   const workbook = new ExcelJS.Workbook();
@@ -87,18 +89,31 @@ export async function exportExcelReport(options: {
     views: [{ state: 'frozen', ySplit: 1 }],
   });
 
-  sheet1.columns = [
-    { header: 'Mã', key: 'code', width: 9 },
-    { header: 'Phân loại', key: 'type', width: 15 },
-    { header: 'Mức độ', key: 'severity', width: 13 },
-    { header: 'Trạng thái', key: 'status', width: 14 },
-    { header: 'Trang & Màn hình', key: 'page', width: 34 },
-    { header: 'Component / Selector', key: 'target', width: 32 },
-    { header: 'Nội dung Feedback & Đề xuất', key: 'feedback', width: 46 },
-    { header: 'Các bước tái hiện', key: 'steps', width: 30 },
-    { header: 'Console / API / A11y', key: 'diagnostics', width: 34 },
-    { header: 'Ảnh minh họa', key: 'screenshot', width: 32 },
-  ];
+  sheet1.columns = isVi
+    ? [
+        { header: 'Mã', key: 'code', width: 9 },
+        { header: 'Phân loại', key: 'type', width: 15 },
+        { header: 'Mức độ', key: 'severity', width: 13 },
+        { header: 'Trạng thái', key: 'status', width: 14 },
+        { header: 'Trang & Màn hình', key: 'page', width: 34 },
+        { header: 'Component / Selector', key: 'target', width: 32 },
+        { header: 'Nội dung Feedback & Đề xuất', key: 'feedback', width: 46 },
+        { header: 'Các bước tái hiện', key: 'steps', width: 30 },
+        { header: 'Console / API / A11y', key: 'diagnostics', width: 34 },
+        { header: 'Ảnh minh họa', key: 'screenshot', width: 32 },
+      ]
+    : [
+        { header: 'ID', key: 'code', width: 9 },
+        { header: 'Type', key: 'type', width: 15 },
+        { header: 'Severity', key: 'severity', width: 13 },
+        { header: 'Status', key: 'status', width: 14 },
+        { header: 'Page URL & Viewport', key: 'page', width: 34 },
+        { header: 'Component / Selector', key: 'target', width: 32 },
+        { header: 'Feedback & Proposed Changes', key: 'feedback', width: 46 },
+        { header: 'Steps to Reproduce', key: 'steps', width: 30 },
+        { header: 'Console / API / A11y', key: 'diagnostics', width: 34 },
+        { header: 'Screenshot', key: 'screenshot', width: 32 },
+      ];
 
   // Style Header Row (#F5F5F7 Studio Mist fill, #1D1D1F Ink text, #D6D6D6 Hairline Silver border)
   const headerRow1 = sheet1.getRow(1);

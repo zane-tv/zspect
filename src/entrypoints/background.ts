@@ -271,8 +271,9 @@ export default defineBackground(() => {
         const nextBadge = existingPins.length + 1;
 
         let croppedImageBlob: Blob | undefined;
+        let croppedDataUrl: string | undefined;
         if (tabId) {
-          const croppedUrl = await cropRegionFromTab(
+          croppedDataUrl = await cropRegionFromTab(
             tabId,
             windowId,
             message.captureRect,
@@ -280,8 +281,8 @@ export default defineBackground(() => {
             nextBadge,
             message.accentColor,
           );
-          if (croppedUrl) {
-            croppedImageBlob = await dataUrlToBlob(croppedUrl);
+          if (croppedDataUrl) {
+            croppedImageBlob = await dataUrlToBlob(croppedDataUrl);
           }
         }
 
@@ -302,6 +303,7 @@ export default defineBackground(() => {
             severity: saved.severity,
             boundingBox: saved.boundingBox,
           },
+          croppedDataUrl,
           totalPinsCount: existingPins.length + 1,
         });
       })().catch((err) => sendResponse({ ok: false, error: String(err) }));

@@ -147,16 +147,16 @@ export function auditElementAccessibility(el: Element): A11yAuditSnapshot {
 
   const issues: string[] = [];
   if (!wcagAA && (el.textContent ?? '').trim().length > 0) {
-    issues.push(`Độ tương phản chữ thấp (${ratio}:1 < ${aaThreshold}:1 chuẩn WCAG AA)`);
+    issues.push(`Low text contrast (${ratio}:1 < ${aaThreshold}:1 WCAG AA minimum)`);
   }
   if (tag === 'img' && !el.hasAttribute('alt')) {
-    issues.push('Thẻ <img> thiếu thuộc tính alt mô tả cho trình đọc màn hình');
+    issues.push('<img> element is missing an alt attribute for screen readers');
   }
   if (isInteractive && !ariaLabel) {
-    issues.push(`Phần tử tương tác <${tag}> thiếu nhãn accessible name (aria-label hoặc text)`);
+    issues.push(`Interactive <${tag}> lacks an accessible name (aria-label or text)`);
   }
   if (isInteractive && !strictTouchPass) {
-    issues.push(`Kích thước vùng bấm nhỏ (${width}×${height}px, khuyến nghị tối thiểu 44×44px)`);
+    issues.push(`Small touch target (${width}×${height}px, recommended minimum 44×44px)`);
   }
 
   return {

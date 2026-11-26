@@ -29,7 +29,7 @@ function createId(): string {
 
 function defaultSessionTitle(): string {
   const date = new Date().toISOString().slice(0, 10);
-  return `Session QA — ${date}`;
+  return `QA Session — ${date}`;
 }
 
 async function getStoredSessionId(): Promise<string | null> {

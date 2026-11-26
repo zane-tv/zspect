@@ -7,8 +7,11 @@ import {
   Copy,
   Crosshair,
   ExternalLink,
+  GripVertical,
+  Image as ImageIcon,
   Layers,
   LayoutGrid,
+  Moon,
   Move,
   PanelRightOpen,
   Pause,
@@ -17,6 +20,7 @@ import {
   Ruler,
   Scan,
   Snowflake,
+  Sun,
   Type as TypeIcon,
   Undo2,
   X,
@@ -28,6 +32,7 @@ import {
   isZSpectInternalNode,
   queryDeepSelector,
 } from '@/core/dom-cleaner';
+import { useZSpectI18n } from '@/core/i18n';
 import { buildIdeDeepLink, compileSinglePinSection } from '@/core/prompt-compiler';
 import {
   extractMotionRules,
@@ -36,9 +41,11 @@ import {
   extractStyleGroups,
   stylesToTailwindHint,
 } from '@/core/style-dna';
+import { useZSpectTheme } from '@/core/theme/useTheme';
 import { auditElementAccessibility } from '@/core/visbug-tools/a11y-inspector';
 import { computeRedlineGuides, type RedlineMeasurement } from '@/core/visbug-tools/guides';
 import { VisBugTweakEngine } from '@/core/visbug-tools/tweak-engine';
+import { copyImageAndOrTextToClipboard } from '@/exporters/image-sheet';
 import type {
   A11yAuditSnapshot,
   AnimationSummary,
@@ -69,6 +76,14 @@ interface HudRefSummary {
   alias: string;
   sourceUrl: string;
   tailwindHint: string;
+}
+
+interface TooltipState {
+  label: string;
+  shortcut?: string;
+  x: number;
+  y: number;
+  placement: 'top' | 'bottom';
 }
 
 const hudVisible = signal(true);
@@ -113,7 +128,14 @@ function getElementBox(el: Element): BoundingBox {
   };
 }
 
+async function dataUrlToPngBlob(dataUrl: string): Promise<Blob> {
+  const res = await fetch(dataUrl);
+  return res.blob();
+}
+
 export function HudApp() {
+  const { theme, toggleTheme } = useZSpectTheme();
+  const { locale, t, toggleLocale } = useZSpectI18n();
   const probe = useMemo(() => new MainWorldProbeClient(), []);
   const tweakEngine = useMemo(() => new VisBugTweakEngine(), []);
 
@@ -121,6 +143,17 @@ export function HudApp() {
   const [totalPinsCount, setTotalPinsCount] = useState(0);
   const [pagePins, setPagePins] = useState<HudPinMarker[]>([]);
   const [references, setReferences] = useState<HudRefSummary[]>([]);
+
+  // Draggable HUD Position (null = docked bottom-center)
+  const dockRef = useRef<HTMLDivElement>(null);
+  const [dockPos, setDockPos] = useState<{ x: number; y: number } | null>(null);
+  const [isDraggingDock, setIsDraggingDock] = useState(false);
+
+  // Draggable Popover Position override
+  const [popoverCustomPos, setPopoverCustomPos] = useState<{ x: number; y: number } | null>(null);
+
+  // Instant Custom Hover Tooltip
+  const [tooltip, setTooltip] = useState<TooltipState | null>(null);
 
   // Hovered & Selected State
   const [hoveredEl, setHoveredEl] = useState<Element | null>(null);
@@ -166,7 +199,7 @@ export function HudApp() {
     componentStack: [],
   });
   const [flightCapsule, setFlightCapsule] = useState<FlightCapsule | undefined>(undefined);
-  const [savingStatus, setSavingStatus] = useState<'idle' | 'saving' | 'saved' | 'copied'>('idle');
+  const [savingStatus, setSavingStatus] = useState<'idle' | 'saving' | 'copying-img'>('idle');
   const [toastMsg, setToastMsg] = useState<string | null>(null);
   const [scrollTick, setScrollTick] = useState(0);
 
@@ -177,6 +210,76 @@ export function HudApp() {
     window.setTimeout(() => {
       setToastMsg((curr) => (curr === msg ? null : curr));
     }, 2400);
+  };
+
+  const showHoverTooltip = (e: MouseEvent, label: string, shortcut?: string) => {
+    if (isDraggingDock) return;
+    const btnRect = (e.currentTarget as HTMLElement).getBoundingClientRect();
+    const placeBelow = btnRect.top < 72;
+    setTooltip({
+      label,
+      shortcut,
+      x: Math.min(window.innerWidth - 80, Math.max(80, btnRect.left + btnRect.width / 2)),
+      y: placeBelow ? btnRect.bottom + 10 : btnRect.top - 38,
+      placement: placeBelow ? 'bottom' : 'top',
+    });
+  };
+
+  const hideHoverTooltip = () => setTooltip(null);
+
+  // Start Dragging the Floating HUD Dock
+  const handleStartDockDrag = (e: MouseEvent) => {
+    if (e.button !== 0) return;
+    e.preventDefault();
+    e.stopPropagation();
+    setTooltip(null);
+
+    const dockEl = dockRef.current;
+    if (!dockEl) return;
+    const rect = dockEl.getBoundingClientRect();
+    const offsetX = e.clientX - rect.left;
+    const offsetY = e.clientY - rect.top;
+    setIsDraggingDock(true);
+
+    const onMove = (ev: MouseEvent) => {
+      const nextX = Math.max(12, Math.min(window.innerWidth - rect.width - 12, ev.clientX - offsetX));
+      const nextY = Math.max(12, Math.min(window.innerHeight - rect.height - 12, ev.clientY - offsetY));
+      setDockPos({ x: Math.round(nextX), y: Math.round(nextY) });
+    };
+
+    const onUp = () => {
+      setIsDraggingDock(false);
+      window.removeEventListener('mousemove', onMove, true);
+      window.removeEventListener('mouseup', onUp, true);
+    };
+
+    window.addEventListener('mousemove', onMove, true);
+    window.addEventListener('mouseup', onUp, true);
+  };
+
+  // Start Dragging the Pin Composer Popover Header
+  const handleStartPopoverDrag = (e: MouseEvent, currentLeft: number, currentTop: number) => {
+    if (e.button !== 0) return;
+    if ((e.target as HTMLElement).closest('button')) return;
+    e.preventDefault();
+    e.stopPropagation();
+
+    const offsetX = e.clientX - currentLeft;
+    const offsetY = e.clientY - currentTop;
+
+    const onMove = (ev: MouseEvent) => {
+      const nextX = Math.max(12, Math.min(window.innerWidth - 340, ev.clientX - offsetX));
+      const nextY = Math.max(12, Math.min(window.innerHeight - 180, ev.clientY - offsetY));
+      setPopoverCustomPos({ x: Math.round(nextX), y: Math.round(nextY) });
+    };
+
+    const onUp = () => {
+      window.removeEventListener('mousemove', onMove, true);
+      window.removeEventListener('mouseup', onUp, true);
+    };
+
+    window.addEventListener('mousemove', onMove, true);
+    window.addEventListener('mouseup', onUp, true);
   };
 
   const refreshHudState = async () => {
@@ -199,7 +302,18 @@ export function HudApp() {
     void probe.connect();
     void refreshHudState();
 
-    const onScrollOrResize = () => setScrollTick((n) => n + 1);
+    const onScrollOrResize = () => {
+      setScrollTick((n) => n + 1);
+      // Keep custom-dragged dock inside viewport on resize
+      setDockPos((prev) => {
+        if (!prev || !dockRef.current) return prev;
+        const r = dockRef.current.getBoundingClientRect();
+        return {
+          x: Math.max(12, Math.min(window.innerWidth - r.width - 12, prev.x)),
+          y: Math.max(12, Math.min(window.innerHeight - r.height - 12, prev.y)),
+        };
+      });
+    };
     window.addEventListener('scroll', onScrollOrResize, { passive: true, capture: true });
     window.addEventListener('resize', onScrollOrResize, { passive: true });
     return () => {
@@ -208,14 +322,13 @@ export function HudApp() {
     };
   }, []);
 
-  // React to external triggers (Alt+Shift+F freeze, DB updates, SidePanel scroll-to)
   const extTick = externalEventTick.value;
   useEffect(() => {
     if (extTick.kind === 'freeze') {
       setMode('freeze');
       setDomFrozen((prev) => !prev);
       void probe.scrubAnimations(scrubProgress / 100, true).then(setAnimations);
-      showToast('Đã đóng băng trạng thái giao diện & chuyển động');
+      showToast(t.toastFrozen);
     } else if (extTick.kind === 'refresh-db') {
       void refreshHudState();
     } else if (extTick.kind === 'scroll-to' && extTick.payload) {
@@ -230,7 +343,6 @@ export function HudApp() {
     }
   }, [extTick.ts]);
 
-  // Ghost-State DOM Freeze event interceptor
   useEffect(() => {
     if (!domFrozen) return;
     const swallowDismissEvent = (e: Event) => {
@@ -249,7 +361,6 @@ export function HudApp() {
     };
   }, [domFrozen]);
 
-  // Load animations when entering Freeze mode
   useEffect(() => {
     if (mode === 'freeze') {
       const sel = primarySelectedEl ? buildResilientSelector(primarySelectedEl) : undefined;
@@ -257,7 +368,6 @@ export function HudApp() {
     }
   }, [mode, primarySelectedEl]);
 
-  // Cleanup CDP pseudo-states when HUD hides
   const isVisible = hudVisible.value;
   useEffect(() => {
     if (!isVisible && cdpStates.length > 0) {
@@ -273,11 +383,11 @@ export function HudApp() {
     }
   }, [isVisible]);
 
-  // Inspect Element / Guides / A11y pointer tracking
   useEffect(() => {
     if (!isVisible) return;
 
     const onMouseMove = (e: MouseEvent) => {
+      if (isDraggingDock) return;
       if (isZSpectInternalNode(e.target as Node | null)) return;
 
       if (mode === 'area' && dragStart) {
@@ -342,6 +452,7 @@ export function HudApp() {
         setDragStart(null);
         if (finalRect && finalRect.width >= 12 && finalRect.height >= 12) {
           setActiveBox(finalRect);
+          setPopoverCustomPos(null);
           const centerHit = deepElementFromPoint(
             finalRect.x + finalRect.width / 2,
             finalRect.y + finalRect.height / 2,
@@ -361,7 +472,6 @@ export function HudApp() {
       if (isZSpectInternalNode(e.target as Node | null)) return;
       if (mode === 'area' || mode === 'diff') return;
 
-      // Check if user just highlighted text in Inspect mode
       const winSel = window.getSelection()?.toString().trim() ?? '';
       if (mode === 'inspect' && winSel.length > 1) {
         const hit = deepElementFromPoint(e.clientX, e.clientY);
@@ -393,7 +503,6 @@ export function HudApp() {
       e.preventDefault();
       e.stopPropagation();
 
-      // Multi-select support via Meta/Ctrl/Shift
       if (e.metaKey || e.ctrlKey || (e.shiftKey && mode === 'spacing')) {
         setSelectedEls((prev) =>
           prev.includes(hit) ? prev.filter((item) => item !== hit) : [...prev, hit],
@@ -435,9 +544,8 @@ export function HudApp() {
       window.removeEventListener('mouseup', onMouseUp, true);
       window.removeEventListener('click', onClick, true);
     };
-  }, [isVisible, mode, dragStart, dragRect, composerOpen, primarySelectedEl]);
+  }, [isVisible, isDraggingDock, mode, dragStart, dragRect, composerOpen, primarySelectedEl]);
 
-  // Keyboard shortcuts for VisBug Tools, Undo/Redo, Overlay nudge & Escape
   useEffect(() => {
     if (!isVisible) return;
 
@@ -455,7 +563,6 @@ export function HudApp() {
         return;
       }
 
-      // Undo / Redo for VisBug tweaks
       if ((e.metaKey || e.ctrlKey) && e.key.toLowerCase() === 'z') {
         e.preventDefault();
         if (e.shiftKey) tweakEngine.redo();
@@ -476,10 +583,10 @@ export function HudApp() {
         return;
       }
 
-      // Single-letter quick tool hotkeys (VisBug style)
       if (!e.metaKey && !e.ctrlKey && !e.altKey) {
         const k = e.key.toLowerCase();
         if (k === 'i') setMode('inspect');
+        else if (k === 'r') setMode('area');
         else if (k === 'g') setMode('guides');
         else if (k === 'a') setMode('a11y');
         else if (k === 'p') {
@@ -493,7 +600,6 @@ export function HudApp() {
         else if (k === 'd') setMode('diff');
       }
 
-      // Arrow keys for VisBug Spacing / Sibling Move / Diff Overlay Nudge
       if (['ArrowUp', 'ArrowDown', 'ArrowLeft', 'ArrowRight'].includes(e.key)) {
         if (mode === 'diff' && overlayImgUrl) {
           e.preventDefault();
@@ -531,7 +637,6 @@ export function HudApp() {
       }
     };
 
-    // Paste Figma / Clipboard image directly in Diff mode
     const onPaste = (e: ClipboardEvent) => {
       if (mode !== 'diff') return;
       const items = Array.from(e.clipboardData?.items ?? []);
@@ -542,7 +647,7 @@ export function HudApp() {
           e.preventDefault();
           const url = URL.createObjectURL(file);
           setOverlayImgUrl(url);
-          showToast('Đã dán ảnh đối chiếu thiết kế từ Clipboard');
+          showToast(t.toastPastedOverlay);
         }
       }
     };
@@ -553,13 +658,13 @@ export function HudApp() {
       window.removeEventListener('keydown', onKeyDown, true);
       window.removeEventListener('paste', onPaste, true);
     };
-  }, [isVisible, mode, composerOpen, selectedEls, spacingTarget, overlayImgUrl, primarySelectedEl]);
+  }, [isVisible, mode, composerOpen, selectedEls, spacingTarget, overlayImgUrl, primarySelectedEl, t]);
 
   const enableLiveTextEditing = (el: HTMLElement) => {
     const beforeText = el.innerText ?? el.textContent ?? '';
     el.contentEditable = 'true';
     el.focus();
-    showToast('Đang sửa thử văn bản trực tiếp — bấm ra ngoài để chốt Diff');
+    showToast(t.toastEditingText);
 
     const onBlur = () => {
       el.removeAttribute('contenteditable');
@@ -584,6 +689,7 @@ export function HudApp() {
     const diff = tweakEngine.extractDiff(el);
     const a11y = precomputedA11y ?? auditElementAccessibility(el);
 
+    setPopoverCustomPos(null);
     setLiveA11y(a11y);
     setPinType(diff ? 'visual-tweak' : suggestedType);
     setPinSeverity(
@@ -646,12 +752,51 @@ export function HudApp() {
     };
   };
 
+  const handleCopyRegionImageOnly = async () => {
+    const targetEl = primarySelectedEl;
+    const box = activeBox ?? (targetEl ? getElementBox(targetEl) : null);
+    if (!box) return;
+
+    setSavingStatus('copying-img');
+    try {
+      setComposerOpen(false);
+      await new Promise((r) => setTimeout(r, 70));
+
+      const accentColor =
+        pinSeverity === 'critical' || pinSeverity === 'high' ? '#b64400' : '#0071e3';
+      const res = await chrome.runtime.sendMessage({
+        type: 'ZSPECT_CAPTURE_REGION',
+        rect: box,
+        viewport: {
+          width: window.innerWidth,
+          height: window.innerHeight,
+          dpr: window.devicePixelRatio || 1,
+        },
+        badgeNumber: totalPinsCount + 1,
+        accentColor,
+      } satisfies ZSpectRuntimeMessage);
+
+      setComposerOpen(true);
+
+      if (res?.ok && res.dataUrl) {
+        const pngBlob = await dataUrlToPngBlob(res.dataUrl);
+        const copied = await copyImageAndOrTextToClipboard({ imageBlob: pngBlob });
+        showToast(copied === 'failed' ? t.clipboardImgDenied : t.copiedImageToast);
+      }
+    } finally {
+      setSavingStatus('idle');
+    }
+  };
+
   const handleSavePin = async (alsoCopyToAi = false) => {
     const draft = buildPinDraftPayload();
     if (!draft) return;
 
     setSavingStatus('saving');
     try {
+      setComposerOpen(false);
+      await new Promise((r) => setTimeout(r, 70));
+
       const accentColor =
         draft.severity === 'critical' || draft.severity === 'high' ? '#b64400' : '#0071e3';
       const res = await chrome.runtime.sendMessage({
@@ -674,22 +819,19 @@ export function HudApp() {
             createdAt: Date.now(),
           };
           const md = compileSinglePinSection(tempRecord, 'standard');
-          await navigator.clipboard.writeText(md);
-          setSavingStatus('copied');
-          showToast(`Đã lưu Ghim #${res.pin.orderIndex} & Copy Prompt cho AI`);
+          const imgBlob = res.croppedDataUrl ? await dataUrlToPngBlob(res.croppedDataUrl) : null;
+          await copyImageAndOrTextToClipboard({ imageBlob: imgBlob, text: md });
+          showToast(`${t.copiedBothToast} (#${res.pin.orderIndex})`);
         } else {
-          setSavingStatus('saved');
-          showToast(`Đã lưu Ghim #${res.pin.orderIndex} vào danh sách`);
+          showToast(`${t.toastSavedPin} #${res.pin.orderIndex}`);
         }
 
         setPinNote('');
         setAttachedRefIds([]);
-        setComposerOpen(false);
         setSavingStatus('idle');
       }
     } catch {
       setSavingStatus('idle');
-      showToast('Không thể lưu ghim — vui lòng thử lại');
     }
   };
 
@@ -700,6 +842,9 @@ export function HudApp() {
     const groups = extractStyleGroups(primarySelectedEl);
 
     try {
+      setComposerOpen(false);
+      await new Promise((r) => setTimeout(r, 70));
+
       const res = await chrome.runtime.sendMessage({
         type: 'ZSPECT_CREATE_REF_FROM_HUD',
         captureRect: box,
@@ -720,9 +865,8 @@ export function HudApp() {
 
       if (res?.ok && res.reference) {
         setReferences((prev) => [res.reference, ...prev]);
-        setComposerOpen(false);
         setSavingStatus('idle');
-        showToast(`Đã lưu mẫu @ref:${res.reference.alias} vào Kho xuyên tab`);
+        showToast(`${t.toastSavedRef} @ref:${res.reference.alias}`);
       }
     } catch {
       setSavingStatus('idle');
@@ -731,7 +875,7 @@ export function HudApp() {
 
   const handleToggleCdpPseudo = async (pseudo: CdpPseudoState) => {
     if (!primarySelectedEl) {
-      showToast('Hãy click chọn 1 phần tử trước khi khóa trạng thái :hover/:focus');
+      showToast(t.toastSelectFirst);
       return;
     }
     const next = cdpStates.includes(pseudo)
@@ -761,7 +905,7 @@ export function HudApp() {
     hudVisible.value = true;
     if (res?.ok && res.dataUrl) {
       setOverlayImgUrl(res.dataUrl);
-      showToast('Đã chụp ảnh Before Snapshot để đối chiếu');
+      showToast(t.toastSnapshotTaken);
     }
   };
 
@@ -770,7 +914,6 @@ export function HudApp() {
   const currentDiff =
     primarySelectedEl && tweakVersion >= 0 ? tweakEngine.extractDiff(primarySelectedEl) : undefined;
 
-  // Compute live pin positions on scroll/resize
   const renderedPinBadges = pagePins.map((pin) => {
     const liveEl = scrollTick >= 0 ? queryDeepSelector(pin.selector) : null;
     if (liveEl) {
@@ -785,22 +928,74 @@ export function HudApp() {
     };
   });
 
-  // Position Popover cleanly inside viewport
-  const popoverStyle = (() => {
-    const refBox = activeBox ?? { x: window.innerWidth / 2 - 180, y: 120, width: 40, height: 40 };
-    const width = 368;
-    const left = Math.max(16, Math.min(window.innerWidth - width - 16, refBox.x));
-    const preferBelow = refBox.y + refBox.height + 12;
+  // Compute Popover Position (supports dragging!)
+  const popoverGeometry = (() => {
+    const width = Math.min(404, Math.max(300, window.innerWidth - 24));
+    if (popoverCustomPos) {
+      return {
+        left: popoverCustomPos.x,
+        top: popoverCustomPos.y,
+        width,
+      };
+    }
+    const refBox = activeBox ?? {
+      x: Math.round((window.innerWidth - width) / 2),
+      y: 120,
+      width: 40,
+      height: 40,
+    };
+    const left = Math.max(12, Math.min(window.innerWidth - width - 12, refBox.x));
+    const preferBelow = refBox.y + refBox.height + 14;
     const top =
-      preferBelow + 370 < window.innerHeight
-        ? preferBelow
-        : Math.max(16, refBox.y - 360);
-    return { left: `${left}px`, top: `${top}px`, width: `${width}px` };
+      preferBelow + 400 < window.innerHeight ? preferBelow : Math.max(12, refBox.y - 390);
+    return { left, top, width };
   })();
 
+  // Compute Sub-Bar anchor relative to Dock position
+  const subBarStyle = (() => {
+    if (!dockPos) {
+      return {
+        position: 'fixed' as const,
+        left: '50%',
+        bottom: '84px',
+        transform: 'translateX(-50%)',
+      };
+    }
+    const dockEl = dockRef.current;
+    const dockW = dockEl ? dockEl.offsetWidth : 560;
+    const dockH = dockEl ? dockEl.offsetHeight : 54;
+    const centerLeft = Math.max(16, Math.min(window.innerWidth - 320, dockPos.x + dockW / 2));
+    const placeBelow = dockPos.y < 90;
+    return {
+      position: 'fixed' as const,
+      left: `${centerLeft}px`,
+      top: placeBelow ? `${dockPos.y + dockH + 10}px` : `${dockPos.y - 54}px`,
+      transform: 'translateX(-50%)',
+    };
+  })();
+
+  const captureTools = [
+    { id: 'inspect', label: t.toolInspect, shortcut: 'I', icon: Crosshair },
+    { id: 'area', label: t.toolArea, shortcut: 'R', icon: Scan },
+    { id: 'guides', label: t.toolGuides, shortcut: 'G', icon: Ruler },
+    { id: 'a11y', label: t.toolA11y, shortcut: 'A', icon: Accessibility },
+  ] as const;
+
+  const tweakTools = [
+    { id: 'spacing', label: t.toolSpacing, shortcut: 'P', icon: Move },
+    { id: 'flexbox', label: t.toolFlex, shortcut: 'F', icon: LayoutGrid },
+    { id: 'text-edit', label: t.toolText, shortcut: 'T', icon: TypeIcon },
+    { id: 'freeze', label: t.toolFreeze, shortcut: '⌥⇧F', icon: Snowflake },
+    { id: 'diff', label: t.toolDiff, shortcut: 'D', icon: Layers },
+  ] as const;
+
   return (
-    <div class="fixed inset-0 pointer-events-none select-none font-sans text-[#1d1d1f]">
-      {/* 1. Design Diff Overlay Layer (Onion-Skin or Split Wipe) */}
+    <div
+      data-theme={theme}
+      class="fixed inset-0 pointer-events-none select-none font-sans"
+      style={{ color: 'var(--zs-text)' }}
+    >
+      {/* 1. Design Diff Overlay Layer */}
       {mode === 'diff' && overlayImgUrl && (
         <div class="fixed inset-0 pointer-events-none overflow-hidden">
           <img
@@ -820,7 +1015,7 @@ export function HudApp() {
           {overlayMode === 'split' && (
             <div
               style={{ left: `${splitPercent}%` }}
-              class="fixed top-0 bottom-0 w-[1.5px] bg-[#0071e3] pointer-events-auto cursor-ew-resize"
+              class="fixed top-0 bottom-0 w-[2px] bg-[#0071e3] pointer-events-auto cursor-ew-resize"
               onMouseDown={(e) => {
                 e.preventDefault();
                 const move = (ev: MouseEvent) => {
@@ -840,20 +1035,37 @@ export function HudApp() {
         </div>
       )}
 
-      {/* 2. Hover Highlight Box & Quick Metadata Tag */}
-      {hoveredBox && !composerOpen && (
+      {/* 2. Smooth Spring Hover Highlight Box */}
+      {hoveredBox && !composerOpen && !isDraggingDock && (
         <div
           style={{
             left: `${hoveredBox.x}px`,
             top: `${hoveredBox.y}px`,
             width: `${hoveredBox.width}px`,
             height: `${hoveredBox.height}px`,
+            transition:
+              'left 85ms cubic-bezier(0.22, 1, 0.36, 1), top 85ms cubic-bezier(0.22, 1, 0.36, 1), width 85ms cubic-bezier(0.22, 1, 0.36, 1), height 85ms cubic-bezier(0.22, 1, 0.36, 1)',
           }}
-          class="fixed border-[1.5px] border-[#0071e3] bg-[#0071e3]/[0.05] pointer-events-none transition-[left,top,width,height] duration-75"
+          class="fixed border-[1.5px] border-[#0071e3] bg-[#0071e3]/[0.05] pointer-events-none"
         >
-          <div class="absolute -top-6 left-0 px-2 py-0.5 rounded-full bg-[#1d1d1f] text-white text-[11px] font-medium whitespace-nowrap tracking-[-0.12px]">
+          <div
+            style={{
+              position: 'absolute',
+              top: hoveredBox.y < 30 ? '4px' : '-26px',
+              left: '0',
+              padding: '3px 9px',
+              borderRadius: '9999px',
+              backgroundColor: '#1d1d1f',
+              color: '#ffffff',
+              fontSize: '11px',
+              fontWeight: 500,
+              whiteSpace: 'nowrap',
+              boxShadow: '0 4px 10px rgba(0,0,0,0.16)',
+            }}
+          >
             {hoveredEl?.tagName.toLowerCase()}
-            {hoveredEl?.id ? `#${hoveredEl.id.slice(0, 16)}` : ''} · {hoveredBox.width}×{hoveredBox.height}
+            {hoveredEl?.id ? `#${hoveredEl.id.slice(0, 16)}` : ''} · {hoveredBox.width}×
+            {hoveredBox.height}
           </div>
         </div>
       )}
@@ -878,7 +1090,6 @@ export function HudApp() {
             }}
             class="fixed border-2 border-[#0071e3] pointer-events-none"
           >
-            {/* Corner Resize-Style Inspector Handles */}
             <span class="absolute -top-1 -left-1 w-2 h-2 bg-white border border-[#0071e3]" />
             <span class="absolute -top-1 -right-1 w-2 h-2 bg-white border border-[#0071e3]" />
             <span class="absolute -bottom-1 -left-1 w-2 h-2 bg-white border border-[#0071e3]" />
@@ -899,7 +1110,7 @@ export function HudApp() {
         );
       })}
 
-      {/* 4. Area Drag Selection Marquee */}
+      {/* 4. Area Drag Marquee */}
       {dragRect && (
         <div
           style={{
@@ -912,7 +1123,7 @@ export function HudApp() {
         />
       )}
 
-      {/* 5. VisBug Redline Distance Guides (SVG Overlay) */}
+      {/* 5. VisBug Redline Distance Guides */}
       {mode === 'guides' && redlineData && (
         <svg class="fixed inset-0 w-screen h-screen pointer-events-none">
           {redlineData.alignments.map((al, i) =>
@@ -953,14 +1164,7 @@ export function HudApp() {
                   stroke="#0071e3"
                   stroke-width="1.5"
                 />
-                <rect
-                  x={mx - 20}
-                  y={my - 10}
-                  width="40"
-                  height="20"
-                  rx="10"
-                  fill="#0071e3"
-                />
+                <rect x={mx - 22} y={my - 10} width="44" height="20" rx="10" fill="#0071e3" />
                 <text
                   x={mx}
                   y={my + 4}
@@ -977,53 +1181,61 @@ export function HudApp() {
         </svg>
       )}
 
-      {/* 6. Live Accessibility WCAG Floating Card (in A11y Mode) */}
+      {/* 6. Live Accessibility WCAG Floating Card */}
       {mode === 'a11y' && hoveredBox && liveA11y && !composerOpen && (
         <div
           style={{
-            left: `${Math.min(window.innerWidth - 280, Math.max(12, hoveredBox.x))}px`,
-            top: `${Math.min(window.innerHeight - 150, hoveredBox.y + hoveredBox.height + 10)}px`,
+            left: `${Math.min(window.innerWidth - 284, Math.max(12, hoveredBox.x))}px`,
+            top: `${Math.min(window.innerHeight - 165, hoveredBox.y + hoveredBox.height + 10)}px`,
           }}
-          class="fixed w-[264px] zs-card p-3 pointer-events-none text-[12px]"
+          class="fixed w-[272px] zs-popover-surface zs-anim-popover p-4 pointer-events-none text-[12px]"
         >
           <div class="flex items-center justify-between mb-1.5">
-            <span class="font-semibold text-[#1d1d1f]">WCAG Contrast</span>
-            <span class={liveA11y.wcagAA ? 'font-semibold text-[#1d1d1f]' : 'zs-status-urgent'}>
-              {liveA11y.contrastRatio}:1 · {liveA11y.wcagAAA ? 'AAA' : liveA11y.wcagAA ? 'AA Pass' : 'AA FAIL'}
+            <span class="font-semibold">WCAG Contrast</span>
+            <span class={liveA11y.wcagAA ? 'font-semibold' : 'zs-status-urgent'}>
+              {liveA11y.contrastRatio}:1 ·{' '}
+              {liveA11y.wcagAAA ? 'AAA' : liveA11y.wcagAA ? 'AA Pass' : 'AA FAIL'}
             </span>
           </div>
-          <div class="flex items-center gap-2 text-[11px] text-[#707070] mb-1">
+          <div class="flex items-center gap-2 text-[11px] zs-muted mb-1">
             <span
-              class="w-3 h-3 rounded-full border border-[#d6d6d6]"
+              class="w-3.5 h-3.5 rounded-full border border-[#86868b]"
               style={{ backgroundColor: liveA11y.foregroundColor }}
             />
             <span>{liveA11y.foregroundColor}</span>
             <span>on</span>
             <span
-              class="w-3 h-3 rounded-full border border-[#d6d6d6]"
+              class="w-3.5 h-3.5 rounded-full border border-[#86868b]"
               style={{ backgroundColor: liveA11y.effectiveBackgroundColor }}
             />
             <span>{liveA11y.effectiveBackgroundColor}</span>
           </div>
-          <div class="text-[11px] text-[#707070] truncate">
-            Role: <strong class="text-[#1d1d1f]">{liveA11y.role}</strong> · Target: {liveA11y.dimensions.width}×{liveA11y.dimensions.height}px
+          <div class="text-[11px] zs-muted truncate">
+            Role: <strong style={{ color: 'var(--zs-text)' }}>{liveA11y.role}</strong> · Target:{' '}
+            {liveA11y.dimensions.width}×{liveA11y.dimensions.height}px
           </div>
           {liveA11y.issues[0] && (
-            <div class="mt-1.5 zs-status-urgent text-[11px]">{liveA11y.issues[0]}</div>
+            <div class="mt-1.5 zs-status-urgent text-[11px] line-clamp-2">{liveA11y.issues[0]}</div>
           )}
         </div>
       )}
 
-      {/* 7. Persistent Numbered Pin Markers on Page (#1, #2...) */}
+      {/* 7. Persistent Numbered Pin Markers on Page */}
       {renderedPinBadges.map((pin) =>
         pin.visible ? (
           <button
             key={pin.id}
             type="button"
-            title={`#${pin.orderIndex}: ${pin.note || pin.type}`}
+            onMouseEnter={(e) =>
+              showHoverTooltip(e, `#${pin.orderIndex}: ${(pin.note || pin.type).slice(0, 36)}`)
+            }
+            onMouseLeave={hideHoverTooltip}
             style={{
-              left: `${Math.max(4, Math.min(window.innerWidth - 28, pin.x - 11))}px`,
-              top: `${Math.max(4, Math.min(window.innerHeight - 28, pin.y - 11))}px`,
+              left: `${Math.max(4, Math.min(window.innerWidth - 28, pin.x - 12))}px`,
+              top: `${Math.max(4, Math.min(window.innerHeight - 28, pin.y - 12))}px`,
+              width: '24px',
+              height: '24px',
+              boxShadow: '0 3px 8px rgba(0,0,0,0.25)',
             }}
             onClick={(e) => {
               e.stopPropagation();
@@ -1031,7 +1243,7 @@ export function HudApp() {
                 .sendMessage({ type: 'ZSPECT_OPEN_SIDEPANEL' } satisfies ZSpectRuntimeMessage)
                 .catch(() => {});
             }}
-            class={`fixed w-[22px] h-[22px] rounded-full border border-white text-white text-[11px] font-semibold flex items-center justify-center pointer-events-auto cursor-pointer ${
+            class={`fixed rounded-full border-2 border-white text-white text-[11px] font-semibold flex items-center justify-center pointer-events-auto cursor-pointer zs-anim-pin zs-pressable ${
               pin.severity === 'critical' || pin.severity === 'high'
                 ? 'bg-[#b64400]'
                 : 'bg-[#0071e3]'
@@ -1042,17 +1254,22 @@ export function HudApp() {
         ) : null,
       )}
 
-      {/* 8. Contextual Sub-Bar for VisBug Spacing / Flexbox / Freeze / Diff */}
+      {/* 8. Contextual Sub-Bar (Anchored cleanly to Dock position) */}
       {(mode === 'spacing' || mode === 'flexbox' || mode === 'freeze' || mode === 'diff') && (
-        <div class="fixed bottom-[68px] left-1/2 -translate-x-1/2 zs-frosted-hud px-4 py-2 flex items-center gap-3 pointer-events-auto text-[12px]">
+        <div
+          style={subBarStyle}
+          class="max-w-[calc(100vw-24px)] overflow-x-auto zs-no-scrollbar whitespace-nowrap zs-frosted-hud px-4 py-2 flex items-center gap-2.5 pointer-events-auto text-[13px]"
+        >
           {mode === 'spacing' && (
             <>
-              <span class="font-medium">Spacing:</span>
+              <span class="font-semibold shrink-0">Spacing:</span>
               <button
                 type="button"
                 onClick={() => setSpacingTarget('padding')}
-                class={`px-2.5 py-1 rounded-full cursor-pointer ${
-                  spacingTarget === 'padding' ? 'bg-[#1d1d1f] text-white' : 'text-[#707070]'
+                class={`h-8 px-3.5 font-medium shrink-0 cursor-pointer zs-pressable ${
+                  spacingTarget === 'padding'
+                    ? 'zs-icon-btn-active rounded-full'
+                    : 'zs-icon-btn zs-muted'
                 }`}
               >
                 Padding (P)
@@ -1060,20 +1277,28 @@ export function HudApp() {
               <button
                 type="button"
                 onClick={() => setSpacingTarget('margin')}
-                class={`px-2.5 py-1 rounded-full cursor-pointer ${
-                  spacingTarget === 'margin' ? 'bg-[#1d1d1f] text-white' : 'text-[#707070]'
+                class={`h-8 px-3.5 font-medium shrink-0 cursor-pointer zs-pressable ${
+                  spacingTarget === 'margin'
+                    ? 'zs-icon-btn-active rounded-full'
+                    : 'zs-icon-btn zs-muted'
                 }`}
               >
                 Margin (M)
               </button>
-              <span class="text-[#707070]">↑↓←→ (+1px · Shift +4px · Alt giảm)</span>
+              <span class="zs-muted text-[12px] shrink-0">{t.spacingHint}</span>
               {primarySelectedEl && currentDiff && (
                 <button
                   type="button"
-                  onClick={() => void inspectAndOpenComposer(primarySelectedEl, getElementBox(primarySelectedEl), 'visual-tweak')}
-                  class="zs-btn-primary px-3 py-1 cursor-pointer"
+                  onClick={() =>
+                    void inspectAndOpenComposer(
+                      primarySelectedEl,
+                      getElementBox(primarySelectedEl),
+                      'visual-tweak',
+                    )
+                  }
+                  class="zs-btn-primary zs-pressable h-8 px-4 shrink-0 cursor-pointer"
                 >
-                  Chốt Diff thành Ghim
+                  {t.pinDiffBtn}
                 </button>
               )}
             </>
@@ -1081,7 +1306,7 @@ export function HudApp() {
 
           {mode === 'flexbox' && (
             <>
-              <span class="font-medium">Flex / Move:</span>
+              <span class="font-semibold shrink-0">Flex:</span>
               {(['row', 'column'] as const).map((dir) => (
                 <button
                   key={dir}
@@ -1092,7 +1317,7 @@ export function HudApp() {
                       setTweakVersion((v) => v + 1);
                     }
                   }}
-                  class="zs-btn-outline px-2.5 py-0.5 cursor-pointer"
+                  class="zs-btn-outline zs-pressable h-8 px-3 shrink-0 cursor-pointer"
                 >
                   {dir}
                 </button>
@@ -1107,19 +1332,25 @@ export function HudApp() {
                       setTweakVersion((v) => v + 1);
                     }
                   }}
-                  class="zs-btn-outline px-2.5 py-0.5 cursor-pointer"
+                  class="zs-btn-outline zs-pressable h-8 px-3 shrink-0 cursor-pointer"
                 >
                   {jc.replace('flex-', '')}
                 </button>
               ))}
-              <span class="text-[#707070]">←→ đổi chỗ phần tử</span>
+              <span class="zs-muted text-[12px] shrink-0">{t.flexMoveHint}</span>
               {primarySelectedEl && currentDiff && (
                 <button
                   type="button"
-                  onClick={() => void inspectAndOpenComposer(primarySelectedEl, getElementBox(primarySelectedEl), 'visual-tweak')}
-                  class="zs-btn-primary px-3 py-1 cursor-pointer"
+                  onClick={() =>
+                    void inspectAndOpenComposer(
+                      primarySelectedEl,
+                      getElementBox(primarySelectedEl),
+                      'visual-tweak',
+                    )
+                  }
+                  class="zs-btn-primary zs-pressable h-8 px-4 shrink-0 cursor-pointer"
                 >
-                  Chốt Diff
+                  {t.pinDiffBtn}
                 </button>
               )}
             </>
@@ -1130,33 +1361,35 @@ export function HudApp() {
               <button
                 type="button"
                 onClick={() => setDomFrozen((f) => !f)}
-                class={`px-3 py-1 rounded-full flex items-center gap-1.5 cursor-pointer ${
-                  domFrozen ? 'bg-[#1d1d1f] text-white' : 'zs-btn-outline'
+                class={`h-8 px-3.5 rounded-full flex items-center gap-1.5 font-medium shrink-0 cursor-pointer zs-pressable ${
+                  domFrozen ? 'zs-icon-btn-active' : 'zs-btn-outline'
                 }`}
               >
-                {domFrozen ? <Pause size={12} /> : <Play size={12} />}
-                {domFrozen ? 'DOM Locked' : 'Lock Tooltip'}
+                {domFrozen ? <Pause size={13} /> : <Play size={13} />}
+                <span>{domFrozen ? t.domLocked : t.lockTooltip}</span>
               </button>
 
-              <div class="h-4 w-[1px] bg-[#d6d6d6]" />
+              <div class="h-5 w-[1px] zs-divider shrink-0" />
 
-              <span class="text-[#707070]">CDP:</span>
+              <span class="zs-muted text-[12px] shrink-0">CDP:</span>
               {(['hover', 'focus', 'active'] as CdpPseudoState[]).map((st) => (
                 <button
                   key={st}
                   type="button"
                   onClick={() => void handleToggleCdpPseudo(st)}
-                  class={`px-2.5 py-0.5 rounded-full cursor-pointer ${
-                    cdpStates.includes(st) ? 'bg-[#0071e3] text-white' : 'zs-btn-outline'
+                  class={`h-8 px-3 rounded-full shrink-0 cursor-pointer zs-pressable ${
+                    cdpStates.includes(st) ? 'bg-[#0071e3] text-white font-medium' : 'zs-btn-outline'
                   }`}
                 >
                   :{st}
                 </button>
               ))}
 
-              <div class="h-4 w-[1px] bg-[#d6d6d6]" />
+              <div class="h-5 w-[1px] zs-divider shrink-0" />
 
-              <span class="text-[#707070]">Motion ({animations.length}):</span>
+              <span class="zs-muted text-[12px] shrink-0">
+                {t.motionLabel} ({animations.length}):
+              </span>
               <input
                 type="range"
                 min={0}
@@ -1165,16 +1398,18 @@ export function HudApp() {
                 onInput={(e) => {
                   const val = Number((e.target as HTMLInputElement).value);
                   setScrubProgress(val);
-                  const sel = primarySelectedEl ? buildResilientSelector(primarySelectedEl) : undefined;
+                  const sel = primarySelectedEl
+                    ? buildResilientSelector(primarySelectedEl)
+                    : undefined;
                   void probe.scrubAnimations(val / 100, true, sel).then(setAnimations);
                 }}
-                class="w-24 accent-[#0071e3] cursor-pointer"
+                class="w-24 accent-[#0071e3] shrink-0 cursor-pointer"
               />
-              <span class="w-8 text-right tabular-nums">{scrubProgress}%</span>
+              <span class="w-9 text-right tabular-nums text-[12px] shrink-0">{scrubProgress}%</span>
               <button
                 type="button"
                 onClick={() => void probe.resumeAnimations()}
-                class="zs-link cursor-pointer"
+                class="zs-link px-1 shrink-0 cursor-pointer"
               >
                 Play
               </button>
@@ -1186,16 +1421,16 @@ export function HudApp() {
               <button
                 type="button"
                 onClick={() => void handleCaptureBeforeSnapshot()}
-                class="zs-btn-outline px-3 py-1 cursor-pointer"
+                class="zs-btn-outline zs-pressable h-8 px-3.5 shrink-0 cursor-pointer"
               >
-                Chụp Before
+                {t.captureBeforeBtn}
               </button>
               <button
                 type="button"
                 onClick={() => fileInputRef.current?.click()}
-                class="zs-btn-outline px-3 py-1 cursor-pointer"
+                class="zs-btn-outline zs-pressable h-8 px-3.5 shrink-0 cursor-pointer"
               >
-                Tải ảnh Figma
+                {t.uploadFigmaBtn}
               </button>
               <input
                 ref={fileInputRef}
@@ -1212,7 +1447,7 @@ export function HudApp() {
                   <button
                     type="button"
                     onClick={() => setOverlayMode(overlayMode === 'onion' ? 'split' : 'onion')}
-                    class="zs-btn-outline px-2.5 py-1 cursor-pointer"
+                    class="zs-btn-outline zs-pressable h-8 px-3.5 shrink-0 cursor-pointer"
                   >
                     {overlayMode === 'onion' ? 'Onion-Skin' : 'Split Wipe'}
                   </button>
@@ -1223,113 +1458,123 @@ export function HudApp() {
                       max={100}
                       value={overlayOpacity}
                       onInput={(e) => setOverlayOpacity(Number((e.target as HTMLInputElement).value))}
-                      class="w-20 accent-[#0071e3]"
+                      class="w-24 accent-[#0071e3] shrink-0"
                     />
                   )}
                   <button
                     type="button"
                     onClick={() => setOverlayImgUrl(null)}
-                    class="zs-link cursor-pointer"
+                    class="zs-link px-1 shrink-0 cursor-pointer"
                   >
-                    Xóa lớp phủ
+                    {t.clearOverlayBtn}
                   </button>
                 </>
               )}
               {!overlayImgUrl && (
-                <span class="text-[#707070]">Hoặc nhấn Cmd/Ctrl+V để dán ảnh Figma</span>
+                <span class="zs-muted text-[12px] shrink-0">{t.pasteMockupHint}</span>
               )}
             </>
           )}
         </div>
       )}
 
-      {/* 9. Pin & Cross-Tab @ref Composer Popover (Apple Gallery Card) */}
+      {/* 9. Draggable Pin & Cross-Tab @ref Composer Popover */}
       {composerOpen && (
         <div
-          style={popoverStyle}
-          class="fixed zs-card p-4 pointer-events-auto flex flex-col gap-3"
+          style={{
+            left: `${popoverGeometry.left}px`,
+            top: `${popoverGeometry.top}px`,
+            width: `${popoverGeometry.width}px`,
+          }}
+          class="fixed zs-popover-surface zs-anim-popover p-5 pointer-events-auto flex flex-col gap-3.5"
         >
-          {/* Header: Mode Switch + Close */}
-          <div class="flex items-center justify-between border-b border-[#e6e6e8] pb-2.5">
-            <div class="flex items-center gap-1.5">
+          {/* Draggable Header */}
+          <div
+            onMouseDown={(e) =>
+              handleStartPopoverDrag(e, popoverGeometry.left, popoverGeometry.top)
+            }
+            class="flex items-center justify-between pb-3 gap-2 cursor-grab active:cursor-grabbing"
+            style={{ borderBottom: '1px solid var(--zs-border)' }}
+          >
+            <div class="flex items-center gap-1.5 min-w-0">
+              <GripVertical size={14} class="zs-muted shrink-0" />
               <button
                 type="button"
                 onClick={() => setComposerTab('pin')}
-                class={`px-3 py-1 rounded-full text-[12px] font-medium cursor-pointer ${
-                  composerTab === 'pin' ? 'bg-[#1d1d1f] text-white' : 'text-[#707070]'
+                class={`h-8 px-3.5 rounded-full text-[13px] font-medium whitespace-nowrap cursor-pointer zs-pressable ${
+                  composerTab === 'pin' ? 'zs-icon-btn-active' : 'zs-icon-btn zs-muted'
                 }`}
               >
-                Gắn Ghim #{totalPinsCount + 1}
+                {t.pinTabTitle} #{totalPinsCount + 1}
               </button>
               <button
                 type="button"
                 onClick={() => setComposerTab('ref')}
-                class={`px-3 py-1 rounded-full text-[12px] font-medium flex items-center gap-1 cursor-pointer ${
-                  composerTab === 'ref' ? 'bg-[#1d1d1f] text-white' : 'text-[#707070]'
+                class={`h-8 px-3.5 rounded-full text-[13px] font-medium flex items-center gap-1.5 whitespace-nowrap cursor-pointer zs-pressable ${
+                  composerTab === 'ref' ? 'zs-icon-btn-active' : 'zs-icon-btn zs-muted'
                 }`}
               >
-                <BookmarkPlus size={12} />
-                Lưu mẫu @ref
+                <BookmarkPlus size={14} />
+                <span>{t.refTabTitle}</span>
               </button>
             </div>
             <button
               type="button"
               onClick={() => setComposerOpen(false)}
-              class="p-1 text-[#707070] hover:text-[#1d1d1f] cursor-pointer"
+              class="w-8 h-8 flex items-center justify-center shrink-0 zs-icon-btn zs-muted cursor-pointer zs-pressable"
             >
-              <X size={15} />
+              <X size={16} />
             </button>
           </div>
 
           {/* Detected Component & IDE Deep-Link */}
-          <div class="bg-[#f5f5f7] rounded-[12px] px-3 py-2 text-[11px] flex flex-col gap-1">
+          <div class="zs-subtle-box rounded-[14px] px-3.5 py-2.5 text-[12px] flex flex-col gap-1.5">
             <div class="flex items-center justify-between gap-2">
-              <span class="font-medium text-[#1d1d1f] truncate">
+              <span class="font-medium truncate">
                 {frameworkMeta.componentName
                   ? `<${frameworkMeta.componentName}> (${frameworkMeta.framework})`
                   : primarySelectedEl
                     ? buildResilientSelector(primarySelectedEl)
-                    : ' vùng chọn màn hình'}
+                    : 'Viewport Region'}
               </span>
               {frameworkMeta.sourceLocation && (
                 <a
                   href={buildIdeDeepLink(frameworkMeta.sourceLocation, 'cursor')}
-                  class="zs-link flex items-center gap-0.5 shrink-0 font-medium"
+                  class="zs-link flex items-center gap-1 shrink-0 font-medium"
                 >
-                  Cursor <ExternalLink size={10} />
+                  Cursor <ExternalLink size={12} />
                 </a>
               )}
             </div>
             {flightCapsule &&
               (flightCapsule.consoleErrors.length > 0 || flightCapsule.networkIssues.length > 0) && (
-                <div class="zs-status-urgent text-[11px]">
-                  Hộp đen 30s: {flightCapsule.consoleErrors.length} lỗi Console ·{' '}
-                  {flightCapsule.networkIssues.length} API lỗi/chậm được đính kèm
+                <div class="zs-status-urgent text-[12px] truncate">
+                  {t.flightAttachedMsg} {flightCapsule.consoleErrors.length} {t.consoleErrLabel} ·{' '}
+                  {flightCapsule.networkIssues.length} {t.netErrLabel}
                 </div>
               )}
             {currentDiff && (
-              <div class="text-[#0066cc] font-medium">
-                Đã ghi nhận {currentDiff.styleChanges.length} thay đổi CSS
-                {currentDiff.textChange ? ' + nội dung chữ' : ''} (Before → After)
+              <div class="zs-link font-medium truncate">
+                {t.diffRecordedMsg} {currentDiff.styleChanges.length} {t.cssChangesLabel}{' '}
+                {currentDiff.textChange ? t.textChangeLabel : ''} (Before → After)
               </div>
             )}
           </div>
 
           {composerTab === 'pin' ? (
             <>
-              {/* Type & Severity */}
-              <div class="flex items-center gap-2">
+              <div class="flex items-center gap-2.5">
                 <select
                   value={pinType}
                   onChange={(e) => setPinType((e.target as HTMLSelectElement).value as PinType)}
-                  class="flex-1 bg-white border border-[#86868b] rounded-full px-3 py-1 text-[12px] text-[#1d1d1f]"
+                  class="flex-1 min-w-0 h-9 zs-input zs-select rounded-full pl-3.5 text-[13px]"
                 >
-                  <option value="bug">Bug / Lỗi</option>
-                  <option value="ui-polish">UI Polish</option>
-                  <option value="visual-tweak">Visual Tweak (Diff)</option>
-                  <option value="copy">Copy / Nội dung</option>
-                  <option value="a11y">Accessibility (WCAG)</option>
-                  <option value="design-diff">Design Diff</option>
+                  <option value="bug">{t.filterBug}</option>
+                  <option value="ui-polish">{t.filterUiPolish}</option>
+                  <option value="visual-tweak">{t.filterVisualTweak}</option>
+                  <option value="copy">{t.filterCopy}</option>
+                  <option value="a11y">{t.filterA11y}</option>
+                  <option value="design-diff">{t.filterDesignDiff}</option>
                 </select>
 
                 <select
@@ -1337,7 +1582,7 @@ export function HudApp() {
                   onChange={(e) =>
                     setPinSeverity((e.target as HTMLSelectElement).value as PinSeverity)
                   }
-                  class="bg-white border border-[#86868b] rounded-full px-3 py-1 text-[12px] text-[#1d1d1f]"
+                  class="h-9 shrink-0 zs-input zs-select rounded-full pl-3.5 text-[13px]"
                 >
                   <option value="critical">Critical</option>
                   <option value="high">High</option>
@@ -1346,19 +1591,17 @@ export function HudApp() {
                 </select>
               </div>
 
-              {/* Feedback Note */}
               <textarea
                 rows={3}
                 value={pinNote}
                 onInput={(e) => setPinNote((e.target as HTMLTextAreaElement).value)}
-                placeholder="Mô tả lỗi hoặc yêu cầu cho AI (VD: Căn lại padding nút này giống @ref)..."
-                class="w-full bg-white border border-[#86868b] rounded-[14px] px-3 py-2 text-[13px] text-[#1d1d1f] placeholder:text-[#86868b] focus:outline-none focus:border-[#0071e3] resize-none"
+                placeholder={t.notePlaceholder}
+                class="w-full zs-input rounded-[14px] px-3.5 py-2.5 text-[13px] placeholder:text-[#86868b] resize-none"
               />
 
-              {/* Cross-Tab @ref Quick Attach Pills */}
               {references.length > 0 && (
                 <div class="flex flex-wrap items-center gap-1.5">
-                  <span class="text-[11px] text-[#707070]">Gắn mẫu:</span>
+                  <span class="text-[12px] zs-muted">{t.attachRefLabel}</span>
                   {references.slice(0, 5).map((ref) => {
                     const active = attachedRefIds.includes(ref.id);
                     return (
@@ -1370,10 +1613,8 @@ export function HudApp() {
                             active ? prev.filter((id) => id !== ref.id) : [...prev, ref.id],
                           )
                         }
-                        class={`px-2.5 py-0.5 rounded-full text-[11px] cursor-pointer ${
-                          active
-                            ? 'bg-[#0071e3] text-white'
-                            : 'bg-[#f5f5f7] text-[#1d1d1f] border border-[#d6d6d6]'
+                        class={`px-2.5 py-1 rounded-full text-[12px] cursor-pointer zs-pressable ${
+                          active ? 'bg-[#0071e3] text-white' : 'zs-subtle-box'
                         }`}
                       >
                         @ref:{ref.alias}
@@ -1383,51 +1624,60 @@ export function HudApp() {
                 </div>
               )}
 
-              {/* Actions */}
-              <div class="flex items-center justify-end gap-2 pt-1">
+              <div class="flex items-center justify-between gap-2 pt-1">
                 <button
                   type="button"
-                  disabled={savingStatus === 'saving'}
-                  onClick={() => void handleSavePin(true)}
-                  class="zs-btn-outline px-3 py-1.5 flex items-center gap-1.5 cursor-pointer"
+                  disabled={savingStatus !== 'idle'}
+                  onClick={() => void handleCopyRegionImageOnly()}
+                  class="zs-btn-outline zs-pressable h-9 px-3 gap-1.5 whitespace-nowrap cursor-pointer"
                 >
-                  <Copy size={12} />
-                  Lưu & Copy AI
+                  <ImageIcon size={14} />
+                  <span>{t.copyImgBtn}</span>
                 </button>
-                <button
-                  type="button"
-                  disabled={savingStatus === 'saving'}
-                  onClick={() => void handleSavePin(false)}
-                  class="zs-btn-primary px-4 py-1.5 flex items-center gap-1.5 cursor-pointer"
-                >
-                  <Check size={12} />
-                  {savingStatus === 'saving' ? 'Đang chụp...' : 'Lưu Ghim'}
-                </button>
+
+                <div class="flex items-center gap-2">
+                  <button
+                    type="button"
+                    disabled={savingStatus !== 'idle'}
+                    onClick={() => void handleSavePin(true)}
+                    class="zs-btn-outline zs-pressable h-9 px-3.5 gap-1.5 whitespace-nowrap cursor-pointer"
+                  >
+                    <Copy size={13} />
+                    <span>{t.saveAndCopyBtn}</span>
+                  </button>
+                  <button
+                    type="button"
+                    disabled={savingStatus !== 'idle'}
+                    onClick={() => void handleSavePin(false)}
+                    class="zs-btn-primary zs-pressable h-9 px-4 gap-1.5 whitespace-nowrap cursor-pointer"
+                  >
+                    <Check size={14} />
+                    <span>{savingStatus === 'saving' ? t.savingBtn : t.savePinBtn}</span>
+                  </button>
+                </div>
               </div>
             </>
           ) : (
             <>
-              <div class="text-[12px] text-[#707070]">
-                Trích xuất cấu trúc DOM sạch, CSS Tokens, Flexbox/Grid, pseudo-elements và hiệu ứng chuyển động của phần tử này để dùng ở tab dự án.
-              </div>
+              <div class="text-[13px] zs-muted leading-relaxed">{t.saveRefDesc}</div>
               <div class="flex items-center gap-2">
-                <span class="text-[12px] font-medium text-[#707070]">@ref:</span>
+                <span class="text-[13px] font-medium zs-muted shrink-0">@ref:</span>
                 <input
                   type="text"
                   value={refAliasInput}
                   onInput={(e) => setRefAliasInput((e.target as HTMLInputElement).value)}
                   placeholder="stripe-card"
-                  class="flex-1 bg-white border border-[#86868b] rounded-full px-3 py-1.5 text-[12px]"
+                  class="flex-1 min-w-0 h-9 zs-input rounded-full px-3.5 text-[13px]"
                 />
               </div>
               <div class="flex justify-end pt-1">
                 <button
                   type="button"
-                  disabled={savingStatus === 'saving'}
+                  disabled={savingStatus !== 'idle'}
                   onClick={() => void handleSaveReference()}
-                  class="zs-btn-primary px-4 py-1.5 cursor-pointer"
+                  class="zs-btn-primary zs-pressable h-9 px-5 whitespace-nowrap cursor-pointer"
                 >
-                  {savingStatus === 'saving' ? 'Đang trích xuất...' : 'Lưu vào @ref Vault'}
+                  {savingStatus === 'saving' ? t.extractingBtn : t.saveRefBtn}
                 </button>
               </div>
             </>
@@ -1437,118 +1687,219 @@ export function HudApp() {
 
       {/* 10. Toast Feedback Capsule */}
       {toastMsg && (
-        <div class="fixed top-5 left-1/2 -translate-x-1/2 zs-frosted-hud px-4 py-1.5 text-[12px] font-medium text-[#1d1d1f]">
+        <div
+          style={{ position: 'fixed', top: '24px', left: '50%', transform: 'translateX(-50%)' }}
+          class="zs-frosted-hud px-5 py-2.5 text-[13px] font-medium whitespace-nowrap"
+        >
           {toastMsg}
         </div>
       )}
 
-      {/* 11. Main Floating Apple-Gallery Pill Toolbar (Bottom Center) */}
-      <div class="fixed bottom-4 left-1/2 -translate-x-1/2 zs-frosted-hud px-2.5 py-1.5 flex items-center gap-1 pointer-events-auto">
-        {/* Brand Emblem */}
-        <div class="flex items-center gap-1.5 pl-1.5 pr-2 border-r border-[#d6d6d6]">
-          <svg viewBox="0 0 512 512" class="w-5 h-5 shrink-0" fill="none">
-            <rect x="16" y="16" width="480" height="480" rx="120" fill="#1d1d1f" />
-            <path fill="#ffffff" d="M124 128H286V166H162V248H124V128Z" />
-            <path fill="#ffffff" d="M124 290H162V346H214V384H124V290Z" />
-            <path fill="#ffffff" d="M232 346H350V276H388V384H232V346Z" />
-            <line x1="178" y1="330" x2="314" y2="194" stroke="#ffffff" stroke-width="40" />
-            <circle cx="358" cy="158" r="34" fill="#0071e3" />
-          </svg>
-          <span class="text-[12px] font-semibold tracking-[-0.12px]">ZSpect</span>
+      {/* 11. Instant Portal Hover Tooltip (Never clipped by overflow) */}
+      {tooltip && !isDraggingDock && (
+        <div
+          class="zs-tooltip"
+          style={{
+            left: `${tooltip.x}px`,
+            top: `${tooltip.y}px`,
+            transform: 'translateX(-50%)',
+          }}
+        >
+          <span>{tooltip.label}</span>
+          {tooltip.shortcut && <kbd class="zs-tooltip-kbd">{tooltip.shortcut}</kbd>}
         </div>
+      )}
 
-        {/* Tool Buttons */}
-        {(
-          [
-            { id: 'inspect', label: 'Inspect (I)', icon: Crosshair },
-            { id: 'area', label: 'Khoanh vùng', icon: Scan },
-            { id: 'guides', label: 'Thước đo (G)', icon: Ruler },
-            { id: 'a11y', label: 'WCAG A11y (A)', icon: Accessibility },
-            { id: 'spacing', label: 'Spacing (P/M)', icon: Move },
-            { id: 'flexbox', label: 'Flex / Move (F)', icon: LayoutGrid },
-            { id: 'text-edit', label: 'Sửa chữ (T)', icon: TypeIcon },
-            { id: 'freeze', label: 'Freeze & Motion', icon: Snowflake },
-            { id: 'diff', label: 'Overlay Diff (D)', icon: Layers },
-          ] as const
-        ).map(({ id, label, icon: Icon }) => {
-          const active = mode === id;
-          return (
+      {/* 12. Main Draggable Floating Dock */}
+      <div
+        ref={dockRef}
+        style={
+          dockPos
+            ? {
+                position: 'fixed',
+                left: `${dockPos.x}px`,
+                top: `${dockPos.y}px`,
+              }
+            : {
+                position: 'fixed',
+                left: '50%',
+                bottom: '20px',
+                transform: 'translateX(-50%)',
+              }
+        }
+        class="max-w-[calc(100vw-16px)] whitespace-nowrap pointer-events-auto"
+      >
+        <div class="zs-hud-dock zs-anim-dock max-w-full overflow-x-auto zs-no-scrollbar">
+          {/* Draggable Brand & Grip Handle */}
+          <div
+            onMouseDown={handleStartDockDrag}
+            onDblClick={() => setDockPos(null)}
+            onMouseEnter={(e) => showHoverTooltip(e, t.dragHudHint)}
+            onMouseLeave={hideHoverTooltip}
+            class="flex items-center gap-1.5 pl-1 pr-2.5 cursor-grab active:cursor-grabbing shrink-0"
+            style={{ borderRight: '1px solid var(--zs-border-strong)' }}
+          >
+            <GripVertical size={15} class="zs-muted shrink-0" />
+            <svg viewBox="0 0 512 512" style={{ width: '24px', height: '24px' }} class="shrink-0" fill="none">
+              <rect
+                x="16"
+                y="16"
+                width="480"
+                height="480"
+                rx="120"
+                fill="#1d1d1f"
+                stroke="#545458"
+                stroke-width="12"
+              />
+              <path fill="#ffffff" d="M124 128H286V166H162V248H124V128Z" />
+              <path fill="#ffffff" d="M124 290H162V346H214V384H124V290Z" />
+              <path fill="#ffffff" d="M232 346H350V276H388V384H232V346Z" />
+              <line x1="178" y1="330" x2="314" y2="194" stroke="#ffffff" stroke-width="40" />
+              <circle cx="358" cy="158" r="34" fill="#0071e3" />
+            </svg>
+            <span class="text-[13px] font-semibold tracking-[-0.2px] pl-0.5">ZSpect</span>
+          </div>
+
+          {/* Cluster 1: Inspect, Area, Redlines, A11y */}
+          <div class="zs-tool-cluster shrink-0">
+            {captureTools.map(({ id, label, shortcut, icon: Icon }) => {
+              const active = mode === id;
+              return (
+                <button
+                  key={id}
+                  type="button"
+                  aria-label={label}
+                  onMouseEnter={(e) => showHoverTooltip(e, label, shortcut)}
+                  onMouseLeave={hideHoverTooltip}
+                  onClick={() => {
+                    setMode(id);
+                    setComposerOpen(false);
+                  }}
+                  class={`zs-hud-btn ${active ? 'zs-hud-btn-active' : ''}`}
+                >
+                  <Icon size={17} strokeWidth={1.9} />
+                </button>
+              );
+            })}
+          </div>
+
+          {/* Cluster 2: VisBug Tweaks, Freeze & Overlay Diff */}
+          <div class="zs-tool-cluster shrink-0">
+            {tweakTools.map(({ id, label, shortcut, icon: Icon }) => {
+              const active = mode === id;
+              return (
+                <button
+                  key={id}
+                  type="button"
+                  aria-label={label}
+                  onMouseEnter={(e) => showHoverTooltip(e, label, shortcut)}
+                  onMouseLeave={hideHoverTooltip}
+                  onClick={() => {
+                    setMode(id);
+                    setComposerOpen(false);
+                  }}
+                  class={`zs-hud-btn ${active ? 'zs-hud-btn-active' : ''}`}
+                >
+                  <Icon size={17} strokeWidth={1.9} />
+                </button>
+              );
+            })}
+          </div>
+
+          {/* Undo / Reset Controls (when VisBug tweaks exist) */}
+          {tweakEngine.canUndo() && (
+            <div class="zs-tool-cluster shrink-0">
+              <button
+                type="button"
+                aria-label={t.undoTooltip}
+                onMouseEnter={(e) => showHoverTooltip(e, t.undoTooltip, '⌘Z')}
+                onMouseLeave={hideHoverTooltip}
+                onClick={() => {
+                  tweakEngine.undo();
+                  setTweakVersion((v) => v + 1);
+                }}
+                class="zs-hud-btn"
+              >
+                <Undo2 size={16} />
+              </button>
+              <button
+                type="button"
+                aria-label={t.resetTooltip}
+                onMouseEnter={(e) => showHoverTooltip(e, t.resetTooltip)}
+                onMouseLeave={hideHoverTooltip}
+                onClick={() => {
+                  tweakEngine.resetAll();
+                  setTweakVersion((v) => v + 1);
+                  showToast(t.toastResetTweaks);
+                }}
+                class="zs-hud-btn"
+              >
+                <RotateCcw size={16} />
+              </button>
+            </div>
+          )}
+
+          {/* Workspace CTA + Quick Settings */}
+          <div
+            class="flex items-center gap-1.5 pl-2 shrink-0"
+            style={{ borderLeft: '1px solid var(--zs-border-strong)' }}
+          >
             <button
-              key={id}
               type="button"
-              title={label}
+              onMouseEnter={(e) => showHoverTooltip(e, t.openSidePanelTooltip)}
+              onMouseLeave={hideHoverTooltip}
               onClick={() => {
-                setMode(id);
-                setComposerOpen(false);
+                chrome.runtime
+                  .sendMessage({ type: 'ZSPECT_OPEN_SIDEPANEL' } satisfies ZSpectRuntimeMessage)
+                  .catch(() => {});
               }}
-              class={`w-8 h-8 rounded-full flex items-center justify-center transition-colors cursor-pointer ${
-                active
-                  ? 'bg-[#1d1d1f] text-white'
-                  : 'text-[#1d1d1f] hover:bg-[#e6e6e8]/70'
-              }`}
+              style={{ height: '36px', padding: '0 15px', gap: '7px' }}
+              class="zs-btn-primary zs-pressable shrink-0 whitespace-nowrap cursor-pointer"
             >
-              <Icon size={15} strokeWidth={1.8} />
+              <PanelRightOpen size={15} />
+              <span>
+                {t.tabPins} ({totalPinsCount})
+              </span>
             </button>
-          );
-        })}
 
-        {/* VisBug Undo / Reset Controls */}
-        {tweakEngine.canUndo() && (
-          <>
-            <div class="h-4 w-[1px] bg-[#d6d6d6] mx-0.5" />
             <button
               type="button"
-              title="Hoàn tác chỉnh sửa (Cmd+Z)"
-              onClick={() => {
-                tweakEngine.undo();
-                setTweakVersion((v) => v + 1);
-              }}
-              class="w-7 h-7 rounded-full flex items-center justify-center hover:bg-[#e6e6e8]/70 cursor-pointer"
+              onMouseEnter={(e) => showHoverTooltip(e, t.switchLangTooltip)}
+              onMouseLeave={hideHoverTooltip}
+              onClick={toggleLocale}
+              style={{ width: '36px', height: '36px' }}
+              class="zs-hud-btn zs-muted text-[11px] font-semibold uppercase tracking-wide"
             >
-              <Undo2 size={14} />
+              {locale}
             </button>
+
             <button
               type="button"
-              title="Khôi phục giao diện gốc"
-              onClick={() => {
-                tweakEngine.resetAll();
-                setTweakVersion((v) => v + 1);
-                showToast('Đã khôi phục toàn bộ CSS/Text về mặc định');
-              }}
-              class="w-7 h-7 rounded-full flex items-center justify-center hover:bg-[#e6e6e8]/70 cursor-pointer"
+              aria-label="Toggle Light/Dark Theme"
+              onMouseEnter={(e) =>
+                showHoverTooltip(e, theme === 'light' ? t.toggleDarkTooltip : t.toggleLightTooltip)
+              }
+              onMouseLeave={hideHoverTooltip}
+              onClick={toggleTheme}
+              class="zs-hud-btn zs-muted"
             >
-              <RotateCcw size={14} />
+              {theme === 'light' ? <Moon size={16} /> : <Sun size={16} />}
             </button>
-          </>
-        )}
 
-        <div class="h-4 w-[1px] bg-[#d6d6d6] mx-1" />
-
-        {/* Open Side Panel Workspace (Pricing Blue Pill) */}
-        <button
-          type="button"
-          onClick={() => {
-            chrome.runtime
-              .sendMessage({ type: 'ZSPECT_OPEN_SIDEPANEL' } satisfies ZSpectRuntimeMessage)
-              .catch(() => {});
-          }}
-          class="zs-btn-primary px-3 py-1.5 flex items-center gap-1.5 cursor-pointer"
-        >
-          <PanelRightOpen size={13} />
-          <span>Pins ({totalPinsCount})</span>
-        </button>
-
-        {/* Hide HUD */}
-        <button
-          type="button"
-          title="Đóng thanh ZSpect (Esc)"
-          onClick={() => {
-            hudVisible.value = false;
-          }}
-          class="w-7 h-7 rounded-full flex items-center justify-center text-[#707070] hover:text-[#1d1d1f] cursor-pointer"
-        >
-          <X size={14} />
-        </button>
+            <button
+              type="button"
+              aria-label={t.closeHudTooltip}
+              onMouseEnter={(e) => showHoverTooltip(e, t.closeHudTooltip, 'Esc')}
+              onMouseLeave={hideHoverTooltip}
+              onClick={() => {
+                hudVisible.value = false;
+              }}
+              class="zs-hud-btn zs-muted"
+            >
+              <X size={16} />
+            </button>
+          </div>
+        </div>
       </div>
     </div>
   );
