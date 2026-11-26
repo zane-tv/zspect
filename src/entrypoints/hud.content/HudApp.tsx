@@ -926,9 +926,9 @@ export function HudApp() {
     };
   });
 
-  // Compute Popover Position (supports dragging!)
+  // Compute Compact Popover Position (316px sleek Linear/Figma style, supports dragging)
   const popoverGeometry = (() => {
-    const width = Math.min(404, Math.max(300, window.innerWidth - 24));
+    const width = Math.min(318, Math.max(280, window.innerWidth - 20));
     if (popoverCustomPos) {
       return {
         left: popoverCustomPos.x,
@@ -938,14 +938,14 @@ export function HudApp() {
     }
     const refBox = activeBox ?? {
       x: Math.round((window.innerWidth - width) / 2),
-      y: 120,
+      y: 100,
       width: 40,
       height: 40,
     };
-    const left = Math.max(12, Math.min(window.innerWidth - width - 12, refBox.x));
-    const preferBelow = refBox.y + refBox.height + 14;
+    const left = Math.max(10, Math.min(window.innerWidth - width - 10, refBox.x));
+    const preferBelow = refBox.y + refBox.height + 10;
     const top =
-      preferBelow + 400 < window.innerHeight ? preferBelow : Math.max(12, refBox.y - 390);
+      preferBelow + 245 < window.innerHeight ? preferBelow : Math.max(10, refBox.y - 240);
     return { left, top, width };
   })();
 
@@ -1467,7 +1467,7 @@ export function HudApp() {
         </div>
       )}
 
-      {/* 9. Draggable Pin & Cross-Tab @ref Composer Popover */}
+      {/* 9. Ultra-Compact Draggable Pin & @ref Composer Popover */}
       {composerOpen && (
         <div
           style={{
@@ -1475,88 +1475,98 @@ export function HudApp() {
             top: `${popoverGeometry.top}px`,
             width: `${popoverGeometry.width}px`,
           }}
-          class="fixed zs-popover-surface zs-anim-popover p-5 pointer-events-auto flex flex-col gap-3.5"
+          class="fixed zs-popover-surface zs-anim-popover p-2.5 pointer-events-auto flex flex-col gap-2 text-[12px]"
         >
-          {/* Draggable Header */}
+          {/* Compact Draggable Top Bar (Segmented Switch + Close) */}
           <div
             onMouseDown={(e) =>
               handleStartPopoverDrag(e, popoverGeometry.left, popoverGeometry.top)
             }
-            class="flex items-center justify-between pb-3 gap-2 cursor-grab active:cursor-grabbing"
-            style={{ borderBottom: '1px solid var(--zs-border)' }}
+            class="flex items-center justify-between gap-1.5 cursor-grab active:cursor-grabbing"
           >
-            <div class="flex items-center gap-1.5 min-w-0">
-              <GripVertical size={14} class="zs-muted shrink-0" />
-              <button
-                type="button"
-                onClick={() => setComposerTab('pin')}
-                class={`h-8 px-3.5 rounded-full text-[13px] font-medium whitespace-nowrap cursor-pointer zs-pressable ${
-                  composerTab === 'pin' ? 'zs-icon-btn-active' : 'zs-icon-btn zs-muted'
-                }`}
-              >
-                {t.pinTabTitle} #{totalPinsCount + 1}
-              </button>
-              <button
-                type="button"
-                onClick={() => setComposerTab('ref')}
-                class={`h-8 px-3.5 rounded-full text-[13px] font-medium flex items-center gap-1.5 whitespace-nowrap cursor-pointer zs-pressable ${
-                  composerTab === 'ref' ? 'zs-icon-btn-active' : 'zs-icon-btn zs-muted'
-                }`}
-              >
-                <BookmarkPlus size={14} />
-                <span>{t.refTabTitle}</span>
-              </button>
+            <div class="flex items-center gap-1 min-w-0">
+              <GripVertical size={13} class="zs-muted shrink-0" />
+              <div class="inline-flex items-center zs-segmented">
+                <button
+                  type="button"
+                  onClick={() => setComposerTab('pin')}
+                  class={`h-6 px-2.5 text-[11.5px] whitespace-nowrap cursor-pointer zs-segmented-btn zs-pressable ${
+                    composerTab === 'pin' ? 'zs-segmented-btn-active' : ''
+                  }`}
+                >
+                  {t.pinTabTitle} #{totalPinsCount + 1}
+                </button>
+                <button
+                  type="button"
+                  onClick={() => setComposerTab('ref')}
+                  class={`h-6 px-2.5 text-[11.5px] flex items-center gap-1 whitespace-nowrap cursor-pointer zs-segmented-btn zs-pressable ${
+                    composerTab === 'ref' ? 'zs-segmented-btn-active' : ''
+                  }`}
+                >
+                  <BookmarkPlus size={11} />
+                  <span>{t.refTabTitle}</span>
+                </button>
+              </div>
             </div>
+
             <button
               type="button"
               onClick={() => setComposerOpen(false)}
-              class="w-8 h-8 flex items-center justify-center shrink-0 zs-icon-btn zs-muted cursor-pointer zs-pressable"
+              class="w-6 h-6 flex items-center justify-center shrink-0 zs-icon-btn zs-muted cursor-pointer zs-pressable"
             >
-              <X size={16} />
+              <X size={14} />
             </button>
           </div>
 
-          {/* Detected Component & IDE Deep-Link */}
-          <div class="zs-subtle-box rounded-[14px] px-3.5 py-2.5 text-[12px] flex flex-col gap-1.5">
-            <div class="flex items-center justify-between gap-2">
-              <span class="font-medium truncate">
-                {frameworkMeta.componentName
-                  ? `<${frameworkMeta.componentName}> (${frameworkMeta.framework})`
-                  : primarySelectedEl
-                    ? buildResilientSelector(primarySelectedEl)
-                    : 'Viewport Region'}
-              </span>
+          {/* Slim Target & Diagnostics Micro-Bar */}
+          <div class="zs-subtle-box rounded-[7px] px-2 py-1 text-[11px] flex flex-col gap-0.5">
+            <div class="flex items-center justify-between gap-1.5 min-w-0">
+              <div class="flex items-center gap-1.5 min-w-0">
+                {frameworkMeta.framework !== 'unknown' && (
+                  <span class="px-1.5 py-0.2 rounded-[4px] bg-[#0071e3]/12 text-[#0071e3] text-[10px] font-semibold uppercase shrink-0">
+                    {frameworkMeta.framework}
+                  </span>
+                )}
+                <span class="font-mono text-[11px] truncate">
+                  {frameworkMeta.componentName
+                    ? `<${frameworkMeta.componentName}>`
+                    : primarySelectedEl
+                      ? buildResilientSelector(primarySelectedEl)
+                      : 'region'}
+                </span>
+              </div>
               {frameworkMeta.sourceLocation && (
                 <a
                   href={buildIdeDeepLink(frameworkMeta.sourceLocation, 'cursor')}
-                  class="zs-link flex items-center gap-1 shrink-0 font-medium"
+                  class="zs-link text-[11px] flex items-center gap-0.5 shrink-0 font-medium"
                 >
-                  Cursor <ExternalLink size={12} />
+                  IDE <ExternalLink size={10} />
                 </a>
               )}
             </div>
             {flightCapsule &&
               (flightCapsule.consoleErrors.length > 0 || flightCapsule.networkIssues.length > 0) && (
-                <div class="zs-status-urgent text-[12px] truncate">
-                  {t.flightAttachedMsg} {flightCapsule.consoleErrors.length} {t.consoleErrLabel} ·{' '}
+                <div class="zs-status-urgent text-[10.5px] truncate">
+                  {flightCapsule.consoleErrors.length} {t.consoleErrLabel} ·{' '}
                   {flightCapsule.networkIssues.length} {t.netErrLabel}
                 </div>
               )}
             {currentDiff && (
-              <div class="zs-link font-medium truncate">
-                {t.diffRecordedMsg} {currentDiff.styleChanges.length} {t.cssChangesLabel}{' '}
-                {currentDiff.textChange ? t.textChangeLabel : ''} (Before → After)
+              <div class="zs-link text-[10.5px] font-medium truncate">
+                Diff: {currentDiff.styleChanges.length} {t.cssChangesLabel}{' '}
+                {currentDiff.textChange ? t.textChangeLabel : ''}
               </div>
             )}
           </div>
 
           {composerTab === 'pin' ? (
             <>
-              <div class="flex items-center gap-2.5">
+              {/* Compact Type & Severity Row (26px height) */}
+              <div class="grid grid-cols-[1fr_auto] gap-1.5">
                 <select
                   value={pinType}
                   onChange={(e) => setPinType((e.target as HTMLSelectElement).value as PinType)}
-                  class="flex-1 min-w-0 h-9 zs-input zs-select rounded-full pl-3.5 text-[13px]"
+                  class="min-w-0 h-7 zs-input zs-select pl-2.5 text-[11.5px] font-medium"
                 >
                   <option value="bug">{t.filterBug}</option>
                   <option value="ui-polish">{t.filterUiPolish}</option>
@@ -1571,7 +1581,7 @@ export function HudApp() {
                   onChange={(e) =>
                     setPinSeverity((e.target as HTMLSelectElement).value as PinSeverity)
                   }
-                  class="h-9 shrink-0 zs-input zs-select rounded-full pl-3.5 text-[13px]"
+                  class="h-7 shrink-0 zs-input zs-select pl-2.5 text-[11.5px] font-medium"
                 >
                   <option value="critical">Critical</option>
                   <option value="high">High</option>
@@ -1580,18 +1590,25 @@ export function HudApp() {
                 </select>
               </div>
 
+              {/* Sleek 2-row Note Input (Cmd/Ctrl+Enter to Save) */}
               <textarea
-                rows={3}
+                rows={2}
                 value={pinNote}
                 onInput={(e) => setPinNote((e.target as HTMLTextAreaElement).value)}
+                onKeyDown={(e) => {
+                  if ((e.metaKey || e.ctrlKey) && e.key === 'Enter') {
+                    e.preventDefault();
+                    void handleSavePin(false);
+                  }
+                }}
                 placeholder={t.notePlaceholder}
-                class="w-full zs-input rounded-[14px] px-3.5 py-2.5 text-[13px] placeholder:text-[#86868b] resize-none"
+                class="w-full zs-input px-2.5 py-1.5 text-[12px] leading-snug placeholder:text-[#86868b] resize-none"
               />
 
               {references.length > 0 && (
-                <div class="flex flex-wrap items-center gap-1.5">
-                  <span class="text-[12px] zs-muted">{t.attachRefLabel}</span>
-                  {references.slice(0, 5).map((ref) => {
+                <div class="flex flex-wrap items-center gap-1">
+                  <span class="text-[11px] zs-muted">{t.attachRefLabel}</span>
+                  {references.slice(0, 4).map((ref) => {
                     const active = attachedRefIds.includes(ref.id);
                     return (
                       <button
@@ -1602,45 +1619,48 @@ export function HudApp() {
                             active ? prev.filter((id) => id !== ref.id) : [...prev, ref.id],
                           )
                         }
-                        class={`px-2.5 py-1 rounded-full text-[12px] cursor-pointer zs-pressable ${
+                        class={`px-2 py-0.5 rounded-[5px] text-[10.5px] font-medium cursor-pointer zs-pressable ${
                           active ? 'bg-[#0071e3] text-white' : 'zs-subtle-box'
                         }`}
                       >
-                        @ref:{ref.alias}
+                        @{ref.alias}
                       </button>
                     );
                   })}
                 </div>
               )}
 
-              <div class="flex items-center justify-between gap-2 pt-1">
+              {/* Compact 28px Footer Actions */}
+              <div class="flex items-center justify-between gap-1.5 pt-0.5">
                 <button
                   type="button"
                   disabled={savingStatus !== 'idle'}
+                  onMouseEnter={(e) => showHoverTooltip(e, t.copyImgBtn)}
+                  onMouseLeave={hideHoverTooltip}
                   onClick={() => void handleCopyRegionImageOnly()}
-                  class="zs-btn-outline zs-pressable h-9 px-3 gap-1.5 whitespace-nowrap cursor-pointer"
+                  class="zs-btn-outline zs-pressable h-7 px-2 gap-1 text-[11.5px] whitespace-nowrap cursor-pointer"
                 >
-                  <ImageIcon size={14} />
-                  <span>{t.copyImgBtn}</span>
+                  <ImageIcon size={12} />
+                  <span>Img</span>
                 </button>
 
-                <div class="flex items-center gap-2">
+                <div class="flex items-center gap-1.5">
                   <button
                     type="button"
                     disabled={savingStatus !== 'idle'}
                     onClick={() => void handleSavePin(true)}
-                    class="zs-btn-outline zs-pressable h-9 px-3.5 gap-1.5 whitespace-nowrap cursor-pointer"
+                    class="zs-btn-outline zs-pressable h-7 px-2.5 gap-1 text-[11.5px] whitespace-nowrap cursor-pointer"
                   >
-                    <Copy size={13} />
+                    <Copy size={11.5} />
                     <span>{t.saveAndCopyBtn}</span>
                   </button>
                   <button
                     type="button"
                     disabled={savingStatus !== 'idle'}
                     onClick={() => void handleSavePin(false)}
-                    class="zs-btn-primary zs-pressable h-9 px-4 gap-1.5 whitespace-nowrap cursor-pointer"
+                    class="zs-btn-primary zs-pressable h-7 px-3 gap-1 text-[11.5px] whitespace-nowrap cursor-pointer"
                   >
-                    <Check size={14} />
+                    <Check size={12} />
                     <span>{savingStatus === 'saving' ? t.savingBtn : t.savePinBtn}</span>
                   </button>
                 </div>
@@ -1648,23 +1668,29 @@ export function HudApp() {
             </>
           ) : (
             <>
-              <div class="text-[13px] zs-muted leading-relaxed">{t.saveRefDesc}</div>
-              <div class="flex items-center gap-2">
-                <span class="text-[13px] font-medium zs-muted shrink-0">@ref:</span>
+              <div class="text-[11.5px] zs-muted leading-snug">{t.saveRefDesc}</div>
+              <div class="flex items-center gap-1.5">
+                <span class="text-[11.5px] font-semibold zs-link shrink-0">@ref:</span>
                 <input
                   type="text"
                   value={refAliasInput}
                   onInput={(e) => setRefAliasInput((e.target as HTMLInputElement).value)}
+                  onKeyDown={(e) => {
+                    if (e.key === 'Enter') {
+                      e.preventDefault();
+                      void handleSaveReference();
+                    }
+                  }}
                   placeholder="stripe-card"
-                  class="flex-1 min-w-0 h-9 zs-input rounded-full px-3.5 text-[13px]"
+                  class="flex-1 min-w-0 h-7 zs-input px-2.5 text-[12px]"
                 />
               </div>
-              <div class="flex justify-end pt-1">
+              <div class="flex justify-end pt-0.5">
                 <button
                   type="button"
                   disabled={savingStatus !== 'idle'}
                   onClick={() => void handleSaveReference()}
-                  class="zs-btn-primary zs-pressable h-9 px-5 whitespace-nowrap cursor-pointer"
+                  class="zs-btn-primary zs-pressable h-7 px-3.5 text-[11.5px] whitespace-nowrap cursor-pointer"
                 >
                   {savingStatus === 'saving' ? t.extractingBtn : t.saveRefBtn}
                 </button>
