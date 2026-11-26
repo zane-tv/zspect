@@ -1,8 +1,18 @@
 {
   "name": "zspect",
   "version": "1.0.0",
-  "private": true,
+  "license": "MIT",
   "description": "ZSpect — Universal Zero-Install Visual Inspector, Cross-Site @ref Vault, VisBug Diff Tools & AI/QA Exporter (.md / .xlsx)",
+  "author": {
+    "name": "Zane",
+    "email": "tientv.63.work@gmail.com",
+    "url": "https://zanedev.pro"
+  },
+  "homepage": "https://github.com/zane-tv/zspect",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/zane-tv/zspect.git"
+  },
   "type": "module",
   "scripts": {
     "dev": "wxt",

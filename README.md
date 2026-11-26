@@ -251,6 +251,17 @@ ZSpect/
 
 ---
 
+## About the Author
+
+Built by **Zane** (`@zane-tv`) — Full-Stack, AI, Data &amp; DevOps Engineer and developer-tool builder from Vietnam (*"I build products that solve real problems, ship them early, then make them perfect"*), creator of [SoftDB](https://github.com/zane-tv/soft-db), [ZStats](https://github.com/zane-tv/zstats), [Z2FA](https://github.com/zane-tv/z2fa), and [agent-skills](https://github.com/zane-tv/agent-skills).
+
+- **Portfolio**: [zanedev.pro](https://zanedev.pro)
+- **GitHub**: [github.com/zane-tv](https://github.com/zane-tv)
+- **LinkedIn**: [linkedin.com/in/zane-tv](https://www.linkedin.com/in/zane-tv)
+- **Contact**: [tientv.63.work@gmail.com](mailto:tientv.63.work@gmail.com)
+
+---
+
 ## License
 
-MIT
+MIT © [Zane](https://zanedev.pro)

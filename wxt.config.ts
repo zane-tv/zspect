@@ -12,6 +12,7 @@ export default defineConfig({
     description:
       'Inspect every page without dev packages: Framework X-Ray, Cross-Tab @ref Vault, VisBug Diff Tools, 30s Bug Capsule & .md/.xlsx Exports.',
     version: '1.0.0',
+    homepage_url: 'https://github.com/zane-tv/zspect',
     permissions: [
       'activeTab',
       'scripting',
