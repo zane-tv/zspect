@@ -9,20 +9,20 @@
 </p>
 
 <p align="center">
-  <img src="https://img.shields.io/badge/Manifest-V3-0071e3?style=flat-square" alt="Manifest V3" />
-  <img src="https://img.shields.io/badge/Runtime-100%25_Pure_Extension_(Zero--CLI)-1d1d1f?style=flat-square" alt="Zero CLI" />
-  <img src="https://img.shields.io/badge/UI-Preact_%2B_Signals_%2B_Tailwind_v4-0ea5e9?style=flat-square" alt="Preact + Tailwind v4" />
+  <a href="https://chromewebstore.google.com/detail/panlphjiggoeadkkdaaolakhiofioplp"><img src="https://img.shields.io/badge/Chrome_Web_Store-Install_ZSpect-0071e3?style=flat-square&logo=googlechrome&logoColor=white" alt="Chrome Web Store" /></a>
+  <a href="https://zane-tv.github.io/zspect/docs/"><img src="https://img.shields.io/badge/Docs-zane--tv.github.io%2Fzspect-1d1d1f?style=flat-square" alt="Documentation" /></a>
+  <img src="https://img.shields.io/badge/Manifest-V3-0ea5e9?style=flat-square" alt="Manifest V3" />
   <img src="https://img.shields.io/badge/Exports-.xlsx_%7C_.zip_%7C_.md_%7C_AI_Prompt-16a34a?style=flat-square" alt="Exports" />
   <img src="https://img.shields.io/badge/TypeScript-5.7-3178c6?style=flat-square" alt="TypeScript" />
 </p>
 
 <p align="center">
+  <a href="https://chromewebstore.google.com/detail/panlphjiggoeadkkdaaolakhiofioplp">Chrome Web Store</a> ·
+  <a href="https://zane-tv.github.io/zspect/">Website &amp; Live Demo</a> ·
+  <a href="https://zane-tv.github.io/zspect/docs/">Documentation</a> ·
   <a href="#why-zspect">Why ZSpect</a> ·
   <a href="#key-features">Key Features</a> ·
-  <a href="#keyboard-shortcuts">Shortcuts</a> ·
-  <a href="#architecture">Architecture</a> ·
-  <a href="#getting-started">Installation</a> ·
-  <a href="#export-formats">Exports</a>
+  <a href="#getting-started">Installation</a>
 </p>
 
 <p align="center">
@@ -161,7 +161,11 @@ flowchart LR
 
 ## Getting Started
 
-### Prerequisites
+### Install from Chrome Web Store
+- **[Add ZSpect from Chrome Web Store](https://chromewebstore.google.com/detail/panlphjiggoeadkkdaaolakhiofioplp)** (supports Chrome, Arc, Brave, and Microsoft Edge)
+- Or download **[`zspect-1.0.0-chrome.zip` from GitHub Releases](https://github.com/zane-tv/zspect/releases/tag/v1.0.0)** and load unpacked via `chrome://extensions`.
+
+### Prerequisites (Build from Source)
 - **Node.js** `>= 20` and **npm**
 - Any Chromium-based browser (**Google Chrome**, **Arc**, **Brave**, or **Microsoft Edge**)
 
