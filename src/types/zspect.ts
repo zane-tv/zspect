@@ -222,6 +222,14 @@ export type ZSpectRuntimeMessage =
       type: 'ZSPECT_CREATE_REF_FROM_HUD';
       refDraft: Omit<ReferenceDNA, 'id' | 'createdAt' | 'previewBlob'>;
       captureRect: BoundingBox;
+    }
+  | {
+      type: 'ZSPECT_DELETE_PIN_FROM_HUD';
+      pinId: string;
+      pageUrl: string;
+    }
+  | {
+      type: 'ZSPECT_CLEAR_PINS_FROM_HUD';
     };
 
 export type ProbeRequestMessage =

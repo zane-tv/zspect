@@ -338,12 +338,12 @@ export default defineContentScript({
           if (fiber.type && typeof fiber.type === 'function') {
             const fnType = fiber.type as { displayName?: string; name?: string };
             const rawName = fnType.displayName || fnType.name;
-            // Ignore minified 1-2 char lowercase mangled names like "ps", "ft", "e" in prod bundles
+            // Ignore minified 1-2 char mangled names like "ps", "Be", "Fe", "e" in prod bundles
             const isMeaningfulName =
               Boolean(rawName) &&
               !rawName!.startsWith('_') &&
               /^[A-Z][A-Za-z0-9_$.]*$/.test(rawName!) &&
-              !(rawName!.length <= 2 && rawName === rawName!.toUpperCase() && !fnType.displayName);
+              (rawName!.length > 2 || Boolean(fnType.displayName));
             if (isMeaningfulName && rawName) {
               if (stack[0] !== rawName) stack.unshift(rawName);
               if (!primaryProps) primaryProps = sanitizeProps(fiber.memoizedProps);

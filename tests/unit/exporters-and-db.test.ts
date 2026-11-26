@@ -4,7 +4,9 @@ import { unzipSync, strFromU8 } from 'fflate';
 import { describe, expect, it } from 'vitest';
 import {
   addPin,
+  clearPinsBySession,
   createSession,
+  deletePin,
   listPinsBySession,
   listReferences,
   saveReference,
@@ -143,5 +145,19 @@ describe('ZSpect IndexedDB + Markdown (.md / .zip) + Excel (.xlsx) Exporters', (
     const wbVi = new ExcelJS.Workbook();
     await wbVi.xlsx.load(await xlsxViBlob.arrayBuffer());
     expect(wbVi.getWorksheet('Feedback & Bug List')!.getRow(1).getCell(1).value).toBe('Mã');
+
+    // 4. Verify single pin deletion (re-indexing) and Clear All Pins
+    const pin2 = await addPin({
+      ...pin1,
+      note: 'Second pin to test clear all',
+    });
+    expect(pin2.orderIndex).toBe(2);
+    await deletePin(pin1.id);
+    const afterOneDelete = await listPinsBySession(session.id);
+    expect(afterOneDelete).toHaveLength(1);
+    expect(afterOneDelete[0]!.orderIndex).toBe(1);
+
+    await clearPinsBySession(session.id);
+    expect(await listPinsBySession(session.id)).toHaveLength(0);
   });
 });

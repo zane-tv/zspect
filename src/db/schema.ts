@@ -47,12 +47,21 @@ export async function setStoredSessionId(sessionId: string): Promise<void> {
 }
 
 function notifyDbChanged(entity: 'pins' | 'references' | 'sessions', sessionId?: string): void {
+  const payload = { type: 'ZSPECT_DB_UPDATED' as const, entity, sessionId };
   if (typeof chrome !== 'undefined' && chrome.runtime?.sendMessage) {
-    chrome.runtime
-      .sendMessage({ type: 'ZSPECT_DB_UPDATED', entity, sessionId })
-      .catch(() => {
-        // Receiver may not be open yet; safe to ignore.
-      });
+    chrome.runtime.sendMessage(payload).catch(() => {});
+  }
+  if (typeof chrome !== 'undefined' && chrome.tabs?.query) {
+    chrome.tabs
+      .query({})
+      .then((tabs) => {
+        for (const tab of tabs) {
+          if (tab.id) {
+            chrome.tabs.sendMessage(tab.id, payload).catch(() => {});
+          }
+        }
+      })
+      .catch(() => {});
   }
 }
 
@@ -154,6 +163,14 @@ export async function deletePin(id: string): Promise<void> {
     await db.sessions.update(pin.sessionId, { updatedAt: Date.now() });
   });
   notifyDbChanged('pins', pin.sessionId);
+}
+
+export async function clearPinsBySession(sessionId: string): Promise<void> {
+  await db.transaction('rw', db.pins, db.sessions, async () => {
+    await db.pins.where('sessionId').equals(sessionId).delete();
+    await db.sessions.update(sessionId, { updatedAt: Date.now() });
+  });
+  notifyDbChanged('pins', sessionId);
 }
 
 export async function listPinsBySession(sessionId: string): Promise<PinRecord[]> {

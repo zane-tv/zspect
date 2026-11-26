@@ -19,6 +19,7 @@ import {
   Ruler,
   Scan,
   Snowflake,
+  Trash2,
   Type as TypeIcon,
   Undo2,
   X,
@@ -85,6 +86,7 @@ interface TooltipState {
 }
 
 const hudVisible = signal(true);
+const hudMinimized = signal(false);
 const externalEventTick = signal<{
   kind: 'none' | 'freeze' | 'refresh-db' | 'scroll-to';
   payload?: Extract<ZSpectRuntimeMessage, { type: 'ZSPECT_SCROLL_TO_PIN' }>;
@@ -96,11 +98,17 @@ export function triggerExternalHudAction(
   payload?: Extract<ZSpectRuntimeMessage, { type: 'ZSPECT_SCROLL_TO_PIN' }>,
 ): void {
   if (action === 'toggle') {
-    hudVisible.value = !hudVisible.value;
+    if (!hudVisible.value) {
+      hudVisible.value = true;
+      hudMinimized.value = false;
+    } else {
+      hudMinimized.value = !hudMinimized.value;
+    }
     return;
   }
   if (action === 'freeze') {
     hudVisible.value = true;
+    hudMinimized.value = false;
     externalEventTick.value = { kind: 'freeze', ts: Date.now() };
     return;
   }
@@ -110,6 +118,7 @@ export function triggerExternalHudAction(
   }
   if (action === 'scroll-to') {
     hudVisible.value = true;
+    hudMinimized.value = false;
     externalEventTick.value = { kind: 'scroll-to', payload, ts: Date.now() };
   }
 }
@@ -142,9 +151,11 @@ export function HudApp() {
   const [pagePins, setPagePins] = useState<HudPinMarker[]>([]);
   const [references, setReferences] = useState<HudRefSummary[]>([]);
 
-  // Draggable HUD Position (null = docked bottom-center)
+  // Draggable HUD Position (null = docked bottom-center) & Minimized FAB Position
   const dockRef = useRef<HTMLDivElement>(null);
+  const noteTextareaRef = useRef<HTMLTextAreaElement>(null);
   const [dockPos, setDockPos] = useState<{ x: number; y: number } | null>(null);
+  const [fabPos, setFabPos] = useState<{ x: number; y: number } | null>(null);
   const [isDraggingDock, setIsDraggingDock] = useState(false);
 
   // Draggable Popover Position override
@@ -198,6 +209,8 @@ export function HudApp() {
   });
   const [flightCapsule, setFlightCapsule] = useState<FlightCapsule | undefined>(undefined);
   const [savingStatus, setSavingStatus] = useState<'idle' | 'saving' | 'copying-img'>('idle');
+  const [hoveredPinId, setHoveredPinId] = useState<string | null>(null);
+  const [confirmClearHud, setConfirmClearHud] = useState(false);
   const [toastMsg, setToastMsg] = useState<string | null>(null);
   const [scrollTick, setScrollTick] = useState(0);
 
@@ -225,7 +238,7 @@ export function HudApp() {
 
   const hideHoverTooltip = () => setTooltip(null);
 
-  // Start Dragging the Floating HUD Dock
+  // Start Dragging the Floating HUD Dock (or Click Logo to Minimize like Agentation)
   const handleStartDockDrag = (e: MouseEvent) => {
     if (e.button !== 0) return;
     e.preventDefault();
@@ -235,20 +248,31 @@ export function HudApp() {
     const dockEl = dockRef.current;
     if (!dockEl) return;
     const rect = dockEl.getBoundingClientRect();
+    const startX = e.clientX;
+    const startY = e.clientY;
     const offsetX = e.clientX - rect.left;
     const offsetY = e.clientY - rect.top;
-    setIsDraggingDock(true);
+    let moved = false;
 
     const onMove = (ev: MouseEvent) => {
-      const nextX = Math.max(12, Math.min(window.innerWidth - rect.width - 12, ev.clientX - offsetX));
-      const nextY = Math.max(12, Math.min(window.innerHeight - rect.height - 12, ev.clientY - offsetY));
-      setDockPos({ x: Math.round(nextX), y: Math.round(nextY) });
+      if (Math.hypot(ev.clientX - startX, ev.clientY - startY) >= 5) {
+        moved = true;
+        setIsDraggingDock(true);
+      }
+      if (moved) {
+        const nextX = Math.max(12, Math.min(window.innerWidth - rect.width - 12, ev.clientX - offsetX));
+        const nextY = Math.max(12, Math.min(window.innerHeight - rect.height - 12, ev.clientY - offsetY));
+        setDockPos({ x: Math.round(nextX), y: Math.round(nextY) });
+      }
     };
 
     const onUp = () => {
       setIsDraggingDock(false);
       window.removeEventListener('mousemove', onMove, true);
       window.removeEventListener('mouseup', onUp, true);
+      if (!moved) {
+        collapseToMinimizedFab();
+      }
     };
 
     window.addEventListener('mousemove', onMove, true);
@@ -367,8 +391,74 @@ export function HudApp() {
   }, [mode, primarySelectedEl]);
 
   const isVisible = hudVisible.value;
+  const isMinimized = hudMinimized.value;
+
+  const collapseToMinimizedFab = () => {
+    setComposerOpen(false);
+    setHoveredEl(null);
+    setHoveredBox(null);
+    setSelectedEls([]);
+    setActiveBox(null);
+    setDomFrozen(false);
+    setTooltip(null);
+    hudMinimized.value = true;
+  };
+
+  // Drag or Click the Minimized Circular Logo FAB (Agentation style)
+  const handleFabMouseDown = (e: MouseEvent) => {
+    if (e.button !== 0) return;
+    e.preventDefault();
+    e.stopPropagation();
+    setTooltip(null);
+
+    const btn = e.currentTarget as HTMLElement;
+    const rect = btn.getBoundingClientRect();
+    const startX = e.clientX;
+    const startY = e.clientY;
+    const offsetX = e.clientX - rect.left;
+    const offsetY = e.clientY - rect.top;
+    let moved = false;
+
+    const onMove = (ev: MouseEvent) => {
+      if (Math.hypot(ev.clientX - startX, ev.clientY - startY) >= 5) {
+        moved = true;
+      }
+      if (moved) {
+        const nextX = Math.max(12, Math.min(window.innerWidth - 54, ev.clientX - offsetX));
+        const nextY = Math.max(12, Math.min(window.innerHeight - 54, ev.clientY - offsetY));
+        setFabPos({ x: Math.round(nextX), y: Math.round(nextY) });
+      }
+    };
+
+    const onUp = () => {
+      window.removeEventListener('mousemove', onMove, true);
+      window.removeEventListener('mouseup', onUp, true);
+      if (!moved) {
+        hudMinimized.value = false;
+      }
+    };
+
+    window.addEventListener('mousemove', onMove, true);
+    window.addEventListener('mouseup', onUp, true);
+  };
+
+  // Auto-focus & sync textarea height gently when Pin Composer opens
   useEffect(() => {
-    if (!isVisible && cdpStates.length > 0) {
+    if (composerOpen && composerTab === 'pin') {
+      const id = window.setTimeout(() => {
+        const el = noteTextareaRef.current;
+        if (el) {
+          el.style.height = 'auto';
+          el.style.height = `${Math.min(150, Math.max(62, el.scrollHeight))}px`;
+          el.focus({ preventScroll: true });
+        }
+      }, 30);
+      return () => window.clearTimeout(id);
+    }
+  }, [composerOpen, composerTab]);
+
+  useEffect(() => {
+    if ((!isVisible || isMinimized) && cdpStates.length > 0) {
       setCdpStates([]);
       chrome.runtime
         .sendMessage({
@@ -379,10 +469,10 @@ export function HudApp() {
         } satisfies ZSpectRuntimeMessage)
         .catch(() => {});
     }
-  }, [isVisible]);
+  }, [isVisible, isMinimized]);
 
   useEffect(() => {
-    if (!isVisible) return;
+    if (!isVisible || isMinimized) return;
 
     const onMouseMove = (e: MouseEvent) => {
       if (isDraggingDock) return;
@@ -542,10 +632,10 @@ export function HudApp() {
       window.removeEventListener('mouseup', onMouseUp, true);
       window.removeEventListener('click', onClick, true);
     };
-  }, [isVisible, isDraggingDock, mode, dragStart, dragRect, composerOpen, primarySelectedEl]);
+  }, [isVisible, isMinimized, isDraggingDock, mode, dragStart, dragRect, composerOpen, primarySelectedEl]);
 
   useEffect(() => {
-    if (!isVisible) return;
+    if (!isVisible || isMinimized) return;
 
     const onKeyDown = (e: KeyboardEvent) => {
       const target = e.target as HTMLElement | null;
@@ -576,7 +666,7 @@ export function HudApp() {
           setSelectedEls([]);
           setActiveBox(null);
         } else {
-          hudVisible.value = false;
+          collapseToMinimizedFab();
         }
         return;
       }
@@ -656,7 +746,7 @@ export function HudApp() {
       window.removeEventListener('keydown', onKeyDown, true);
       window.removeEventListener('paste', onPaste, true);
     };
-  }, [isVisible, mode, composerOpen, selectedEls, spacingTarget, overlayImgUrl, primarySelectedEl, t]);
+  }, [isVisible, isMinimized, mode, composerOpen, selectedEls, spacingTarget, overlayImgUrl, primarySelectedEl, t]);
 
   const enableLiveTextEditing = (el: HTMLElement) => {
     const beforeText = el.innerText ?? el.textContent ?? '';
@@ -894,6 +984,48 @@ export function HudApp() {
     }
   };
 
+  const handleDeletePinOnScreen = async (pin: HudPinMarker) => {
+    try {
+      setHoveredPinId(null);
+      setTooltip(null);
+      const res = await chrome.runtime.sendMessage({
+        type: 'ZSPECT_DELETE_PIN_FROM_HUD',
+        pinId: pin.id,
+        pageUrl: window.location.href,
+      } satisfies ZSpectRuntimeMessage);
+
+      if (res?.ok) {
+        setPagePins(res.pagePins ?? []);
+        setTotalPinsCount(res.totalPinsCount ?? 0);
+        showToast(`${t.toastDeletedPin} #${pin.orderIndex}`);
+      }
+    } catch {
+      // Ignore
+    }
+  };
+
+  const handleClearAllPinsFromHud = async () => {
+    if (!confirmClearHud) {
+      setConfirmClearHud(true);
+      window.setTimeout(() => setConfirmClearHud(false), 3000);
+      return;
+    }
+    setConfirmClearHud(false);
+    setTooltip(null);
+    try {
+      const res = await chrome.runtime.sendMessage({
+        type: 'ZSPECT_CLEAR_PINS_FROM_HUD',
+      } satisfies ZSpectRuntimeMessage);
+      if (res?.ok) {
+        setPagePins([]);
+        setTotalPinsCount(0);
+        showToast(t.toastClearedAllPins);
+      }
+    } catch {
+      // Ignore
+    }
+  };
+
   const handleCaptureBeforeSnapshot = async () => {
     hudVisible.value = false;
     await new Promise((r) => setTimeout(r, 90));
@@ -908,6 +1040,77 @@ export function HudApp() {
   };
 
   if (!isVisible) return null;
+
+  // Agentation-style Minimized Circular Logo Launcher (Inspection OFF / Paused)
+  if (isMinimized) {
+    return (
+      <div
+        data-theme={theme}
+        class="fixed inset-0 pointer-events-none select-none font-sans"
+        style={{ color: 'var(--zs-text)' }}
+      >
+        {tooltip && (
+          <div
+            class="zs-tooltip"
+            style={{
+              left: `${tooltip.x}px`,
+              top: `${tooltip.y}px`,
+              transform: 'translateX(-50%)',
+            }}
+          >
+            <span>{tooltip.label}</span>
+            {tooltip.shortcut && <kbd class="zs-tooltip-kbd">{tooltip.shortcut}</kbd>}
+          </div>
+        )}
+
+        <button
+          type="button"
+          aria-label={t.expandHudTooltip}
+          onMouseDown={handleFabMouseDown}
+          onMouseEnter={(e) => showHoverTooltip(e, t.expandHudTooltip, 'Alt+Z')}
+          onMouseLeave={hideHoverTooltip}
+          style={
+            fabPos
+              ? { position: 'fixed', left: `${fabPos.x}px`, top: `${fabPos.y}px` }
+              : { position: 'fixed', right: '20px', bottom: '20px' }
+          }
+          class="zs-fab-launcher zs-anim-pin pointer-events-auto"
+        >
+          <svg viewBox="0 0 512 512" style={{ width: '24px', height: '24px' }} fill="none">
+            <path fill="#ffffff" d="M116 120H288V162H158V248H116V120Z" />
+            <path fill="#ffffff" d="M116 292H158V350H214V392H116V292Z" />
+            <path fill="#ffffff" d="M234 350H354V276H396V392H234V350Z" />
+            <line x1="174" y1="334" x2="318" y2="190" stroke="#ffffff" stroke-width="44" />
+            <circle cx="364" cy="152" r="38" fill="#0071e3" />
+          </svg>
+
+          {totalPinsCount > 0 && (
+            <span
+              style={{
+                position: 'absolute',
+                top: '-4px',
+                right: '-4px',
+                minWidth: '18px',
+                height: '18px',
+                padding: '0 4px',
+                borderRadius: '9999px',
+                backgroundColor: '#0071e3',
+                color: '#ffffff',
+                fontSize: '10px',
+                fontWeight: 700,
+                border: '1.5px solid #1d1d1f',
+                display: 'inline-flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+              }}
+            >
+              {totalPinsCount}
+            </span>
+          )}
+        </button>
+      </div>
+    );
+  }
 
   const currentDiff =
     primarySelectedEl && tweakVersion >= 0 ? tweakEngine.extractDiff(primarySelectedEl) : undefined;
@@ -1218,44 +1421,93 @@ export function HudApp() {
         </div>
       )}
 
-      {/* 7. Persistent Numbered Pin Markers on Page */}
-      {renderedPinBadges.map((pin) =>
-        pin.visible ? (
-          <button
+      {/* 7. Persistent Numbered Pin Markers on Page (Expand on hover with instant Delete X) */}
+      {renderedPinBadges.map((pin) => {
+        if (!pin.visible) return null;
+        const isPinHovered = hoveredPinId === pin.id;
+        const isHigh = pin.severity === 'critical' || pin.severity === 'high';
+        const baseLeft = Math.max(6, Math.min(window.innerWidth - 30, Math.round(pin.x - 12)));
+        const baseTop = Math.max(6, Math.min(window.innerHeight - 32, Math.round(pin.y - 12)));
+        const expandLeftward = baseLeft > window.innerWidth - 180;
+
+        return (
+          <div
             key={pin.id}
-            type="button"
-            onMouseEnter={(e) =>
-              showHoverTooltip(e, `#${pin.orderIndex}: ${(pin.note || pin.type).slice(0, 36)}`)
-            }
-            onMouseLeave={hideHoverTooltip}
             style={{
-              left: `${Math.max(4, Math.min(window.innerWidth - 28, pin.x - 12))}px`,
-              top: `${Math.max(4, Math.min(window.innerHeight - 28, pin.y - 12))}px`,
-              width: '24px',
-              height: '24px',
-              boxShadow: '0 3px 8px rgba(0,0,0,0.25)',
+              position: 'fixed',
+              ...(expandLeftward
+                ? { right: `${window.innerWidth - baseLeft - 24}px` }
+                : { left: `${baseLeft}px` }),
+              top: `${baseTop}px`,
+              padding: '4px',
+              margin: '-4px',
+              zIndex: isPinHovered ? 10 : 1,
             }}
-            onClick={(e) => {
-              e.stopPropagation();
-              chrome.runtime
-                .sendMessage({ type: 'ZSPECT_OPEN_SIDEPANEL' } satisfies ZSpectRuntimeMessage)
-                .catch(() => {});
+            onMouseEnter={() => {
+              setHoveredPinId(pin.id);
+              setHoveredEl(null);
+              setHoveredBox(null);
             }}
-            class={`fixed rounded-full border-2 border-white text-white text-[11px] font-semibold flex items-center justify-center pointer-events-auto cursor-pointer zs-anim-pin zs-pressable ${
-              pin.severity === 'critical' || pin.severity === 'high'
-                ? 'bg-[#b64400]'
-                : 'bg-[#0071e3]'
-            }`}
+            onMouseLeave={() => setHoveredPinId((curr) => (curr === pin.id ? null : curr))}
+            onClick={(e) => e.stopPropagation()}
+            class="pointer-events-auto"
           >
-            {pin.orderIndex}
-          </button>
-        ) : null,
-      )}
+            <div
+              style={{
+                height: '24px',
+                minWidth: '24px',
+                padding: isPinHovered ? '0 4px 0 8px' : '0',
+                gap: '6px',
+                boxShadow: '0 3px 10px rgba(0,0,0,0.26)',
+                transition: 'all 140ms cubic-bezier(0.16, 1, 0.3, 1)',
+              }}
+              class={`rounded-full border-[1.5px] border-white text-white text-[11px] font-semibold inline-flex items-center justify-center zs-anim-pin ${
+                isHigh ? 'bg-[#b64400]' : 'bg-[#0071e3]'
+              }`}
+            >
+              <button
+                type="button"
+                onClick={(e) => {
+                  e.stopPropagation();
+                  chrome.runtime
+                    .sendMessage({ type: 'ZSPECT_OPEN_SIDEPANEL' } satisfies ZSpectRuntimeMessage)
+                    .catch(() => {});
+                }}
+                class="inline-flex items-center gap-1.5 bg-transparent border-none text-white p-0 cursor-pointer font-semibold text-[11px]"
+              >
+                <span>{pin.orderIndex}</span>
+                {isPinHovered && (
+                  <span class="max-w-[108px] truncate font-medium opacity-95">
+                    {(pin.note || pin.type).replace(/\s+/g, ' ')}
+                  </span>
+                )}
+              </button>
+
+              {isPinHovered && (
+                <button
+                  type="button"
+                  title={t.deletePinOnScreenTooltip}
+                  aria-label={t.deletePinOnScreenTooltip}
+                  onClick={(e) => {
+                    e.preventDefault();
+                    e.stopPropagation();
+                    void handleDeletePinOnScreen(pin);
+                  }}
+                  style={{ width: '16px', height: '16px' }}
+                  class="rounded-full bg-black/25 hover:bg-[#ff3b30] text-white flex items-center justify-center border-none p-0 cursor-pointer shrink-0 transition-colors"
+                >
+                  <X size={11} strokeWidth={2.5} />
+                </button>
+              )}
+            </div>
+          </div>
+        );
+      })}
 
       {/* 8. Slim Contextual Sub-Bar (34px height) */}
       {(mode === 'spacing' || mode === 'flexbox' || mode === 'freeze' || mode === 'diff') && (
         <div
-          style={subBarStyle}
+          style={{ ...subBarStyle, zIndex: 40 }}
           class="max-w-[calc(100vw-20px)] overflow-x-auto zs-no-scrollbar whitespace-nowrap zs-hud-subbar zs-anim-dock pointer-events-auto"
         >
           {mode === 'spacing' && (
@@ -1474,7 +1726,18 @@ export function HudApp() {
             left: `${popoverGeometry.left}px`,
             top: `${popoverGeometry.top}px`,
             width: `${popoverGeometry.width}px`,
+            zIndex: 50,
           }}
+          onKeyDown={(e) => {
+            if (e.key === 'Escape') {
+              e.stopPropagation();
+              setComposerOpen(false);
+              return;
+            }
+            e.stopPropagation();
+          }}
+          onKeyUp={(e) => e.stopPropagation()}
+          onKeyPress={(e) => e.stopPropagation()}
           class="fixed zs-popover-surface zs-anim-popover p-2.5 pointer-events-auto flex flex-col gap-2 text-[12px]"
         >
           {/* Compact Draggable Top Bar (Segmented Switch + Close) */}
@@ -1590,19 +1853,34 @@ export function HudApp() {
                 </select>
               </div>
 
-              {/* Sleek 2-row Note Input (Cmd/Ctrl+Enter to Save) */}
+              {/* Sleek Auto-Growing Note Input (Shadow-DOM shielded + Anti-Grammarly + Cmd/Ctrl+Enter) */}
               <textarea
+                ref={noteTextareaRef}
                 rows={2}
                 value={pinNote}
-                onInput={(e) => setPinNote((e.target as HTMLTextAreaElement).value)}
+                data-gramm="false"
+                data-gramm_editor="false"
+                data-enable-grammarly="false"
+                data-lt-active="false"
+                data-1p-ignore="true"
+                data-lpignore="true"
+                spellcheck={false}
+                autoComplete="off"
+                onInput={(e) => {
+                  const el = e.target as HTMLTextAreaElement;
+                  setPinNote(el.value);
+                  el.style.height = 'auto';
+                  el.style.height = `${Math.min(150, Math.max(62, el.scrollHeight))}px`;
+                }}
                 onKeyDown={(e) => {
+                  e.stopPropagation();
                   if ((e.metaKey || e.ctrlKey) && e.key === 'Enter') {
                     e.preventDefault();
                     void handleSavePin(false);
                   }
                 }}
                 placeholder={t.notePlaceholder}
-                class="w-full zs-input px-2.5 py-1.5 text-[12px] leading-snug placeholder:text-[#86868b] resize-none"
+                class="zs-textarea"
               />
 
               {references.length > 0 && (
@@ -1674,8 +1952,12 @@ export function HudApp() {
                 <input
                   type="text"
                   value={refAliasInput}
+                  data-gramm="false"
+                  spellcheck={false}
+                  autoComplete="off"
                   onInput={(e) => setRefAliasInput((e.target as HTMLInputElement).value)}
                   onKeyDown={(e) => {
+                    e.stopPropagation();
                     if (e.key === 'Enter') {
                       e.preventDefault();
                       void handleSaveReference();
@@ -1703,7 +1985,13 @@ export function HudApp() {
       {/* 10. Toast Feedback Capsule */}
       {toastMsg && (
         <div
-          style={{ position: 'fixed', top: '24px', left: '50%', transform: 'translateX(-50%)' }}
+          style={{
+            position: 'fixed',
+            top: '24px',
+            left: '50%',
+            transform: 'translateX(-50%)',
+            zIndex: 70,
+          }}
           class="zs-frosted-hud px-5 py-2.5 text-[13px] font-medium whitespace-nowrap"
         >
           {toastMsg}
@@ -1734,12 +2022,14 @@ export function HudApp() {
                 position: 'fixed',
                 left: `${dockPos.x}px`,
                 top: `${dockPos.y}px`,
+                zIndex: 60,
               }
             : {
                 position: 'fixed',
                 left: '50%',
                 bottom: '14px',
                 transform: 'translateX(-50%)',
+                zIndex: 60,
               }
         }
         class="max-w-[calc(100vw-16px)] whitespace-nowrap pointer-events-auto"
@@ -1879,14 +2169,43 @@ export function HudApp() {
               <span>{totalPinsCount}</span>
             </button>
 
+            {totalPinsCount > 0 && (
+              <button
+                type="button"
+                aria-label={t.clearAllPinsTooltip}
+                onMouseEnter={(e) => showHoverTooltip(e, t.clearAllPinsTooltip)}
+                onMouseLeave={hideHoverTooltip}
+                onClick={() => void handleClearAllPinsFromHud()}
+                style={
+                  confirmClearHud
+                    ? {
+                        height: '28px',
+                        padding: '0 9px',
+                        fontSize: '11px',
+                        fontWeight: 600,
+                        borderRadius: '9999px',
+                        backgroundColor: '#ff3b30',
+                        color: '#ffffff',
+                        border: 'none',
+                      }
+                    : { width: '28px', height: '28px' }
+                }
+                class={
+                  confirmClearHud
+                    ? 'zs-pressable shrink-0 whitespace-nowrap cursor-pointer'
+                    : 'zs-hud-btn zs-muted hover:!text-[#ff3b30]'
+                }
+              >
+                {confirmClearHud ? t.confirmClearBtn : <Trash2 size={13.5} />}
+              </button>
+            )}
+
             <button
               type="button"
               aria-label={t.closeHudTooltip}
               onMouseEnter={(e) => showHoverTooltip(e, t.closeHudTooltip, 'Esc')}
               onMouseLeave={hideHoverTooltip}
-              onClick={() => {
-                hudVisible.value = false;
-              }}
+              onClick={collapseToMinimizedFab}
               style={{ width: '28px', height: '28px' }}
               class="zs-hud-btn zs-muted"
             >

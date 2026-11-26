@@ -26,6 +26,7 @@ import {
 } from '@/core/prompt-compiler';
 import { useZSpectTheme } from '@/core/theme/useTheme';
 import {
+  clearPinsBySession,
   createSession,
   deletePin,
   deleteReference,
@@ -262,6 +263,10 @@ function PinCard({
       <textarea
         rows={2}
         value={noteDraft}
+        data-gramm="false"
+        data-gramm_editor="false"
+        data-enable-grammarly="false"
+        spellcheck={false}
         onInput={(e) => setNoteDraft((e.target as HTMLTextAreaElement).value)}
         onBlur={() => {
           if (noteDraft.trim() !== pin.note) {
@@ -269,7 +274,7 @@ function PinCard({
           }
         }}
         placeholder={t.notePlaceholder}
-        class="w-full zs-input px-2.5 py-1.5 text-[12px] leading-snug resize-y"
+        class="zs-textarea"
       />
 
       {/* VisBug Before -> After Diff Preview */}
@@ -488,6 +493,7 @@ export function SidePanelApp() {
   const [ideTarget, setIdeTarget] = useState<IdeTarget>('cursor');
   const [density, setDensity] = useState<PromptDensity>('standard');
   const [exportBusy, setExportBusy] = useState<string | null>(null);
+  const [confirmClearAll, setConfirmClearAll] = useState(false);
   const [toast, setToast] = useState<string | null>(null);
   const [restrictedTabNotice, setRestrictedTabNotice] = useState(false);
 
@@ -645,6 +651,19 @@ export function SidePanelApp() {
     } finally {
       setExportBusy(null);
     }
+  };
+
+  const handleClearAllPins = async () => {
+    if (!currentSession || pins.length === 0) return;
+    if (!confirmClearAll) {
+      setConfirmClearAll(true);
+      window.setTimeout(() => setConfirmClearAll(false), 3000);
+      return;
+    }
+    setConfirmClearAll(false);
+    await clearPinsBySession(currentSession.id);
+    await loadWorkspace();
+    notify(t.toastClearedAllPins);
   };
 
   return (
@@ -822,7 +841,7 @@ export function SidePanelApp() {
                 onChange={(e) =>
                   setTypeFilter((e.target as HTMLSelectElement).value as 'all' | PinType)
                 }
-                class="h-7.5 shrink-0 max-w-[118px] zs-input zs-select pl-2.5 text-[11.5px] truncate"
+                class="h-7.5 shrink-0 max-w-[108px] zs-input zs-select pl-2.5 text-[11.5px] truncate"
               >
                 <option value="all">{t.filterAll}</option>
                 <option value="bug">{t.filterBug}</option>
@@ -832,6 +851,22 @@ export function SidePanelApp() {
                 <option value="copy">{t.filterCopy}</option>
                 <option value="design-diff">{t.filterDesignDiff}</option>
               </select>
+
+              {pins.length > 0 && (
+                <button
+                  type="button"
+                  title={t.clearAllPinsTooltip}
+                  onClick={() => void handleClearAllPins()}
+                  class={`h-7.5 shrink-0 px-2.5 gap-1 rounded-[8px] text-[11.5px] font-medium inline-flex items-center justify-center whitespace-nowrap cursor-pointer zs-pressable ${
+                    confirmClearAll
+                      ? 'bg-[#ff3b30] text-white border border-transparent'
+                      : 'zs-btn-outline zs-muted hover:!text-[#ff3b30] hover:!border-[#ff3b30]'
+                  }`}
+                >
+                  <Trash2 size={12} />
+                  <span>{confirmClearAll ? t.confirmClearBtn : t.clearAllBtn}</span>
+                </button>
+              )}
             </div>
 
             {filteredPins.length === 0 ? (

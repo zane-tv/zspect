@@ -39,6 +39,24 @@ export default defineContentScript({
     const appContainer = document.createElement('div');
     shadow.appendChild(appContainer);
 
+    // Shield Shadow DOM inputs/buttons from host-page FocusTraps (Radix/MUI modals) and global hotkeys
+    const stopHostBubble = (e: Event) => {
+      e.stopPropagation();
+    };
+    for (const evt of [
+      'keydown',
+      'keyup',
+      'keypress',
+      'focusin',
+      'mousedown',
+      'mouseup',
+      'pointerdown',
+      'pointerup',
+      'click',
+    ]) {
+      host.addEventListener(evt, stopHostBubble, false);
+    }
+
     render(<HudApp />, appContainer);
 
     chrome.runtime.onMessage.addListener((msg: ZSpectRuntimeMessage, _sender, sendResponse) => {

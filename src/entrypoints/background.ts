@@ -1,6 +1,8 @@
 import { defineBackground } from 'wxt/sandbox';
 import {
   addPin,
+  clearPinsBySession,
+  deletePin,
   ensureActiveSession,
   listPinsBySession,
   listReferences,
@@ -344,6 +346,44 @@ export default defineBackground(() => {
             sourceUrl: savedRef.sourceUrl,
             tailwindHint: savedRef.tailwindHint,
           },
+        });
+      })().catch((err) => sendResponse({ ok: false, error: String(err) }));
+      return true;
+    }
+
+    if (message.type === 'ZSPECT_DELETE_PIN_FROM_HUD') {
+      (async () => {
+        await deletePin(message.pinId);
+        const session = await ensureActiveSession();
+        const allPins = await listPinsBySession(session.id);
+        const pagePins = allPins
+          .filter((p) => p.pageUrl === message.pageUrl)
+          .map((p) => ({
+            id: p.id,
+            orderIndex: p.orderIndex,
+            selector: p.selector,
+            note: p.note,
+            type: p.type,
+            severity: p.severity,
+            boundingBox: p.boundingBox,
+          }));
+        sendResponse({
+          ok: true,
+          totalPinsCount: allPins.length,
+          pagePins,
+        });
+      })().catch((err) => sendResponse({ ok: false, error: String(err) }));
+      return true;
+    }
+
+    if (message.type === 'ZSPECT_CLEAR_PINS_FROM_HUD') {
+      (async () => {
+        const session = await ensureActiveSession();
+        await clearPinsBySession(session.id);
+        sendResponse({
+          ok: true,
+          totalPinsCount: 0,
+          pagePins: [],
         });
       })().catch((err) => sendResponse({ ok: false, error: String(err) }));
       return true;

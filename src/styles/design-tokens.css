@@ -108,7 +108,17 @@ body {
   font-family: var(--font-sf-pro-text);
   font-size: 14px;
   line-height: 1.4;
+  letter-spacing: normal;
+  word-spacing: normal;
+  text-transform: none;
+  text-indent: 0;
+  text-shadow: none;
+  text-align: left;
+  white-space: normal;
+  direction: ltr;
   color: var(--zs-text);
+  scrollbar-width: thin;
+  scrollbar-color: rgba(142, 142, 147, 0.4) transparent;
   box-sizing: border-box;
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
@@ -313,20 +323,126 @@ body {
 .zs-input {
   background-color: var(--zs-bg-card);
   color: var(--zs-text);
+  -webkit-text-fill-color: var(--zs-text);
+  caret-color: var(--zs-blue);
+  user-select: text !important;
+  -webkit-user-select: text !important;
   border: 1px solid var(--zs-input-border);
   border-radius: 8px;
-  transition: border-color 140ms ease, box-shadow 140ms ease;
+  transition: border-color 140ms ease, box-shadow 140ms ease, background-color 140ms ease;
+}
+
+.zs-input::placeholder,
+.zs-input-subtle::placeholder,
+.zs-textarea::placeholder {
+  color: var(--zs-text-secondary) !important;
+  -webkit-text-fill-color: var(--zs-text-secondary) !important;
+  opacity: 1 !important;
 }
 
 .zs-input:focus {
   outline: none;
   border-color: var(--zs-blue);
-  box-shadow: 0 0 0 2px rgba(0, 113, 227, 0.16);
+  box-shadow: 0 0 0 2px rgba(0, 113, 227, 0.18);
+}
+
+/* Explicit Shadow-DOM-safe Textarea (immune to host CSS, scrollbars & Tailwind @property limits) */
+.zs-textarea {
+  display: block;
+  width: 100%;
+  min-height: 62px;
+  max-height: 150px;
+  margin: 0;
+  padding: 8px 10px;
+  font-family: var(--font-sf-pro-text);
+  font-size: 12.5px;
+  font-weight: 400;
+  line-height: 1.45;
+  letter-spacing: normal;
+  color: var(--zs-text) !important;
+  -webkit-text-fill-color: var(--zs-text) !important;
+  caret-color: var(--zs-blue);
+  background-color: var(--zs-bg-subtle);
+  border: 1px solid var(--zs-input-border);
+  border-radius: 8px;
+  resize: none;
+  overflow-y: auto;
+  overscroll-behavior: contain;
+  scrollbar-width: thin;
+  scrollbar-color: var(--zs-input-border) transparent;
+  user-select: text !important;
+  -webkit-user-select: text !important;
+  cursor: text;
+  appearance: none;
+  -webkit-appearance: none;
+  transition: border-color 140ms ease, box-shadow 140ms ease, background-color 140ms ease;
+}
+
+.zs-textarea::-webkit-scrollbar {
+  width: 5px;
+  height: 5px;
+}
+
+.zs-textarea::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+.zs-textarea::-webkit-scrollbar-thumb {
+  background-color: var(--zs-input-border);
+  border-radius: 9999px;
+}
+
+.zs-textarea:focus {
+  outline: none;
+  background-color: var(--zs-bg-card);
+  border-color: var(--zs-blue);
+  box-shadow: 0 0 0 2px rgba(0, 113, 227, 0.22);
+}
+
+/* Agentation-style Minimized Circular Logo Launcher (Paused / Off State) */
+.zs-fab-launcher {
+  position: relative;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 44px;
+  height: 44px;
+  padding: 0;
+  border-radius: 9999px;
+  background-color: #1d1d1f;
+  border: 1.5px solid rgba(255, 255, 255, 0.24);
+  box-shadow:
+    0 10px 26px -4px rgba(0, 0, 0, 0.36),
+    0 2px 6px rgba(0, 0, 0, 0.22),
+    0 0 0 1px rgba(0, 0, 0, 0.12);
+  cursor: pointer;
+  user-select: none;
+  transition:
+    transform 160ms cubic-bezier(0.22, 1, 0.36, 1),
+    box-shadow 160ms ease,
+    border-color 160ms ease;
+}
+
+.zs-fab-launcher:hover {
+  transform: scale(1.07);
+  border-color: rgba(255, 255, 255, 0.48);
+  box-shadow:
+    0 14px 30px -4px rgba(0, 0, 0, 0.44),
+    0 3px 8px rgba(0, 0, 0, 0.26),
+    0 0 0 1px rgba(0, 113, 227, 0.35);
+}
+
+.zs-fab-launcher:active {
+  transform: scale(0.95);
 }
 
 .zs-input-subtle {
   background-color: var(--zs-bg-subtle);
   color: var(--zs-text);
+  -webkit-text-fill-color: var(--zs-text);
+  caret-color: var(--zs-blue);
+  user-select: text !important;
+  -webkit-user-select: text !important;
   border: 1px solid var(--zs-border);
   border-radius: 8px;
   transition: border-color 140ms ease, background-color 140ms ease;
